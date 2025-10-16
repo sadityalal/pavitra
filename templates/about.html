@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}About - Pavitra Enterprises{% endblock %}
+{% block description %}Learn about Pavitra Enterprises - your trusted partner for quality products. Discover our mission, values, and commitment to customer satisfaction.{% endblock %}
+{% block keywords %}about pavitra enterprises, company story, mission, values, customer service, quality products{% endblock %}
+
+{% block content %}
+<!-- About Section -->
+<section id="about" class="about section">
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-5">
+      <!-- Company Story -->
+      <div class="col-lg-6" data-aos="fade-right" data-aos-delay="200">
+        <div class="about-content">
+          <h2 class="about-title">Welcome to Pavitra Enterprises</h2>
+          <p class="about-description">Your trusted partner for quality products and exceptional service. Founded with a vision to revolutionize online shopping, we are committed to delivering the best shopping experience with a carefully curated range of premium products.</p>
+
+          <div class="about-features">
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill text-primary"></i>
+              <span>100% Authentic Products</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill text-primary"></i>
+              <span>Fast & Free Shipping</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill text-primary"></i>
+              <span>24/7 Customer Support</span>
+            </div>
+            <div class="feature-item">
+              <i class="bi bi-check-circle-fill text-primary"></i>
+              <span>Easy Returns & Exchanges</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6" data-aos="fade-left" data-aos-delay="200">
+        <div class="about-image">
+          <img src="{{ url_for('static', filename='img/about/about-showcase.webp') }}" class="img-fluid rounded-3" alt="Pavitra Enterprises Team" loading="lazy">
+          <div class="experience-badge">
+            <span class="years">2+</span>
+            <span class="text">Years of Excellence</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission & Values -->
+    <div class="row features-boxes gy-4 mt-5">
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="feature-box">
+          <div class="icon-box bg-primary">
+            <i class="bi bi-bullseye"></i>
+          </div>
+          <h3>Our Mission</h3>
+          <p>To provide exceptional quality products that enhance our customers' lives while maintaining the highest standards of service, integrity, and innovation.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="feature-box">
+          <div class="icon-box bg-success">
+            <i class="bi bi-eye"></i>
+          </div>
+          <h3>Our Vision</h3>
+          <p>To become the most trusted and preferred online shopping destination, known for unparalleled quality and customer service.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="feature-box">
+          <div class="icon-box bg-warning">
+            <i class="bi bi-heart"></i>
+          </div>
+          <h3>Our Values</h3>
+          <p>Customer satisfaction, quality assurance, transparency, and innovation guide every decision we make.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /About Section -->
+
+<!-- Stats Section -->
+<section id="stats" class="stats section bg-light">
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="section-header text-center mb-5">
+      <h2>Why Choose Pavitra Enterprises?</h2>
+      <p class="lead">Numbers that speak for our commitment to excellence</p>
+    </div>
+
+    <div class="row gy-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center">
+          <div class="stats-icon">
+            <i class="bi bi-emoji-smile"></i>
+          </div>
+          <h3 class="purecounter" data-purecounter-start="0" data-purecounter-end="{% if stats %}{{ stats.happy_customers }}{% else %}500{% endif %}" data-purecounter-duration="2">0</h3>
+          <p>Happy Customers</p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center">
+          <div class="stats-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <h3 class="purecounter" data-purecounter-start="0" data-purecounter-end="{% if stats %}{{ stats.total_products }}{% else %}150{% endif %}" data-purecounter-duration="2">0</h3>
+          <p>Quality Products</p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center">
+          <div class="stats-icon">
+            <i class="bi bi-truck"></i>
+          </div>
+          <h3 class="purecounter" data-purecounter-start="0" data-purecounter-end="{% if stats %}{{ stats.orders_delivered }}{% else %}1200{% endif %}" data-purecounter-duration="2">0</h3>
+          <p>Orders Delivered</p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center">
+          <div class="stats-icon">
+            <i class="bi bi-award"></i>
+          </div>
+          <h3 class="purecounter" data-purecounter-start="0" data-purecounter-end="{% if stats %}{{ stats.positive_reviews }}{% else %}98{% endif %}" data-purecounter-duration="2">0</h3>
+          <p>Positive Reviews</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /Stats Section -->
+
+<!-- Team Section -->
+<section id="team" class="team section">
+  <div class="container" data-aos="fade-up">
+    <div class="section-header text-center mb-5">
+      <h2>Meet Our Dedicated Team</h2>
+      <p class="lead">The passionate professionals behind Pavitra Enterprises</p>
+    </div>
+
+    <div class="row gy-4">
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="team-member text-center">
+          <div class="member-img">
+            <img src="{{ url_for('static', filename='img/team/team-1.webp') }}" class="img-fluid" alt="Founder & CEO" loading="lazy">
+          </div>
+          <div class="member-info">
+            <h4>Aditya Saurabh</h4>
+            <span>Founder & CEO</span>
+            <p>Visionary leader with passion for quality and customer satisfaction</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="team-member text-center">
+          <div class="member-img">
+            <img src="{{ url_for('static', filename='img/team/team-2.webp') }}" class="img-fluid" alt="Operations Manager" loading="lazy">
+          </div>
+          <div class="member-info">
+            <h4>Sarah Johnson</h4>
+            <span>Operations Manager</span>
+            <p>Ensuring smooth operations and timely delivery</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="team-member text-center">
+          <div class="member-img">
+            <img src="{{ url_for('static', filename='img/team/team-3.webp') }}" class="img-fluid" alt="Customer Support Lead" loading="lazy">
+          </div>
+          <div class="member-info">
+            <h4>Mike Chen</h4>
+            <span>Customer Support Lead</span>
+            <p>Dedicated to providing exceptional customer service</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="team-member text-center">
+          <div class="member-img">
+            <img src="{{ url_for('static', filename='img/team/team-4.webp') }}" class="img-fluid" alt="Quality Assurance" loading="lazy">
+          </div>
+          <div class="member-info">
+            <h4>Priya Sharma</h4>
+            <span>Quality Assurance</span>
+            <p>Ensuring every product meets our high standards</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /Team Section -->
+
+<!-- Testimonials Section -->
+<section id="testimonials" class="testimonials section bg-light">
+  <div class="container" data-aos="fade-up">
+    <div class="section-header text-center mb-5">
+      <h2>What Our Customers Say</h2>
+      <p class="lead">Real feedback from our valued customers</p>
+    </div>
+
+    <div class="row gy-4">
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="testimonial-item">
+          <div class="testimonial-content">
+            <div class="rating mb-3">
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+            </div>
+            <p class="testimonial-text">"Excellent quality products and fast shipping! I've been shopping with Pavitra Enterprises for over a year and they never disappoint."</p>
+            <div class="client-info">
+              <img src="{{ url_for('static', filename='img/testimonials/client-1.webp') }}" alt="Rachel Bennett">
+              <div class="client-details">
+                <h5>Rachel Bennett</h5>
+                <span>Regular Customer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="testimonial-item">
+          <div class="testimonial-content">
+            <div class="rating mb-3">
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+            </div>
+            <p class="testimonial-text">"Outstanding customer service! When I had an issue with my order, their support team resolved it immediately."</p>
+            <div class="client-info">
+              <img src="{{ url_for('static', filename='img/testimonials/client-2.webp') }}" alt="Daniel Morgan">
+              <div class="client-details">
+                <h5>Daniel Morgan</h5>
+                <span>Business Owner</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="testimonial-item">
+          <div class="testimonial-content">
+            <div class="rating mb-3">
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+              <i class="bi bi-star-fill text-warning"></i>
+            </div>
+            <p class="testimonial-text">"Fast delivery and great packaging. The products always exceed my expectations. Highly recommended!"</p>
+            <div class="client-info">
+              <img src="{{ url_for('static', filename='img/testimonials/client-3.webp') }}" alt="Emma Thompson">
+              <div class="client-details">
+                <h5>Emma Thompson</h5>
+                <span>Frequent Shopper</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /Testimonials Section -->
+
+<!-- CTA Section -->
+<section id="cta-about" class="cta-about section">
+  <div class="container" data-aos="fade-up">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h2>Ready to Experience Quality Shopping?</h2>
+        <p class="lead mb-4">Join thousands of satisfied customers who trust Pavitra Enterprises for their shopping needs.</p>
+        <div class="cta-buttons">
+          <a href="{{ url_for('shop.category') }}" class="btn btn-primary btn-lg me-3">Start Shopping</a>
+          <a href="{{ url_for('shop.contact') }}" class="btn btn-outline-primary btn-lg">Contact Us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /CTA Section -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize PureCounter for stats
+  if (typeof PureCounter !== 'undefined') {
+    new PureCounter();
+  }
+});
+</script>
+{% endblock %}

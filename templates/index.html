@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Pavitra Enterprises{% endblock %}
+{% block description %}Discover amazing products at Pavitra Enterprises. Shop electronics, clothing, home goods and more with fast shipping and great prices.{% endblock %}
+{% block keywords %}shopping, ecommerce, electronics, clothing, home goods, pavitra enterprises, best sellers, featured products{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section id="hero" class="hero section">
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="content-wrapper" data-aos="fade-up" data-aos-delay="100">
+        <h1 class="hero-title">Welcome to Pavitra Enterprises</h1>
+        <p class="hero-description">Discover our curated collection of premium products designed to enhance your lifestyle. From electronics to fashion, find everything you need with exclusive deals and fast shipping.</p>
+        <div class="hero-actions" data-aos="fade-up" data-aos-delay="200">
+          <a href="{{ url_for('shop.category') }}" class="btn-primary">Shop Now</a>
+          <a href="{{ url_for('shop.search') }}?q=featured" class="btn-secondary">Featured Products</a>
+        </div>
+        <div class="features-list" data-aos="fade-up" data-aos-delay="300">
+          <div class="feature-item">
+            <i class="bi bi-truck"></i>
+            <span>Free Shipping Over $50</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-award"></i>
+            <span>Quality Guarantee</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-shield-check"></i>
+            <span>Secure Payment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visuals">
+      <div class="product-showcase" data-aos="fade-left" data-aos-delay="200">
+        {% if featured_products %}
+        <div class="product-card featured">
+          <img src="{{ featured_products[0].image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ featured_products[0].name }}" class="img-fluid">
+          <div class="product-badge">Featured</div>
+          <div class="product-info">
+            <h4>{{ featured_products[0].name }}</h4>
+            <div class="price">
+              <span class="sale-price">${{ "%.2f"|format(featured_products[0].price) }}</span>
+              {% if featured_products[0].compare_price %}
+              <span class="original-price">${{ "%.2f"|format(featured_products[0].compare_price) }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="product-grid">
+          {% if featured_products|length > 1 %}
+          <div class="product-mini" data-aos="zoom-in" data-aos-delay="400">
+            <img src="{{ featured_products[1].image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ featured_products[1].name }}" class="img-fluid">
+            <span class="mini-price">${{ "%.2f"|format(featured_products[1].price) }}</span>
+          </div>
+          {% endif %}
+          {% if featured_products|length > 2 %}
+          <div class="product-mini" data-aos="zoom-in" data-aos-delay="500">
+            <img src="{{ featured_products[2].image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ featured_products[2].name }}" class="img-fluid">
+            <span class="mini-price">${{ "%.2f"|format(featured_products[2].price) }}</span>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section><!-- /Hero Section -->
+
+<!-- Categories Section -->
+<section id="categories" class="categories section">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Shop by Category</h2>
+      <p>Browse our wide range of product categories</p>
+    </div>
+
+    <div class="row gy-4">
+      {% for category in categories %}
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ 100 * loop.index }}">
+        <div class="category-card">
+          <div class="category-image">
+            <img src="{{ category.image_url or url_for('static', filename='img/categories/placeholder.jpg') }}" alt="{{ category.name }}" class="img-fluid">
+            <div class="category-overlay">
+              <div class="product-count">{{ category.products|length }} products</div>
+            </div>
+          </div>
+          <div class="category-content">
+            <h3>{{ category.name }}</h3>
+            <p>{{ category.description|default('Explore our collection', true) }}</p>
+            <a href="{{ url_for('shop.category', slug=category.slug) }}" class="btn-category">
+              Shop Now <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section><!-- /Categories Section -->
+
+<!-- Featured Products Section -->
+<section id="featured-products" class="featured-products section bg-light">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Featured Products</h2>
+      <p>Handpicked items just for you</p>
+    </div>
+
+    <div class="row gy-4">
+      {% for product in featured_products %}
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ 100 * loop.index }}">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid">
+            <div class="product-badges">
+              {% if product.is_featured %}
+              <span class="badge-featured">Featured</span>
+              {% endif %}
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="badge-sale">-{{ product.get_discount_percentage() }}%</span>
+              {% endif %}
+              {% if product.is_low_stock() %}
+              <span class="badge-warning">Low Stock</span>
+              {% endif %}
+            </div>
+            <div class="product-actions">
+              {% if user %}
+              <a href="{{ url_for('shop.add_to_wishlist', product_id=product.id) }}" class="action-btn wishlist-btn" title="Add to Wishlist">
+                <i class="bi bi-heart"></i>
+              </a>
+              {% endif %}
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="action-btn view-btn" title="Quick View">
+                <i class="bi bi-eye"></i>
+              </a>
+            </div>
+            {% if product.is_in_stock() %}
+            <form action="{{ url_for('shop.add_to_cart', product_id=product.id) }}" method="POST" class="add-to-cart-form">
+              <button type="submit" class="cart-btn">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+              </button>
+            </form>
+            {% else %}
+            <button class="cart-btn out-of-stock" disabled>
+              <i class="bi bi-x-circle"></i> Out of Stock
+            </button>
+            {% endif %}
+          </div>
+          <div class="product-info">
+            <div class="product-category">{{ product.category.name if product.category else 'Uncategorized' }}</div>
+            <h4 class="product-name">
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a>
+            </h4>
+            <div class="product-rating">
+              <div class="stars">
+                {% set avg_rating = product.get_average_rating() %}
+                {% for i in range(5) %}
+                  {% if i < avg_rating %}
+                    <i class="bi bi-star-fill text-warning"></i>
+                  {% else %}
+                    <i class="bi bi-star text-muted"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="rating-count">({{ product.get_review_count() }})</span>
+            </div>
+            <div class="product-price">
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="old-price">${{ "%.2f"|format(product.compare_price) }}</span>
+              {% endif %}
+              <span class="current-price">${{ "%.2f"|format(product.price) }}</span>
+            </div>
+            {% if product.is_low_stock() and product.is_in_stock() %}
+            <div class="stock-info">
+              <small class="text-warning">Only {{ product.inventory_quantity }} left!</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4" data-aos="fade-up">
+      <a href="{{ url_for('shop.search') }}?q=featured" class="btn btn-outline-primary">View All Featured Products</a>
+    </div>
+  </div>
+</section><!-- /Featured Products Section -->
+
+<!-- New Arrivals Section -->
+<section id="new-arrivals" class="new-arrivals section">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>New Arrivals</h2>
+      <p>Check out our latest products</p>
+    </div>
+
+    <div class="row gy-4">
+      {% for product in new_arrivals %}
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ 100 * loop.index }}">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid">
+            <div class="product-badges">
+              <span class="badge-new">New</span>
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="badge-sale">-{{ product.get_discount_percentage() }}%</span>
+              {% endif %}
+            </div>
+            <div class="product-actions">
+              {% if user %}
+              <a href="{{ url_for('shop.add_to_wishlist', product_id=product.id) }}" class="action-btn wishlist-btn" title="Add to Wishlist">
+                <i class="bi bi-heart"></i>
+              </a>
+              {% endif %}
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="action-btn view-btn" title="Quick View">
+                <i class="bi bi-eye"></i>
+              </a>
+            </div>
+            {% if product.is_in_stock() %}
+            <form action="{{ url_for('shop.add_to_cart', product_id=product.id) }}" method="POST" class="add-to-cart-form">
+              <button type="submit" class="cart-btn">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+              </button>
+            </form>
+            {% else %}
+            <button class="cart-btn out-of-stock" disabled>
+              <i class="bi bi-x-circle"></i> Out of Stock
+            </button>
+            {% endif %}
+          </div>
+          <div class="product-info">
+            <div class="product-category">{{ product.category.name if product.category else 'Uncategorized' }}</div>
+            <h4 class="product-name">
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a>
+            </h4>
+            <div class="product-rating">
+              <div class="stars">
+                {% set avg_rating = product.get_average_rating() %}
+                {% for i in range(5) %}
+                  {% if i < avg_rating %}
+                    <i class="bi bi-star-fill text-warning"></i>
+                  {% else %}
+                    <i class="bi bi-star text-muted"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="rating-count">({{ product.get_review_count() }})</span>
+            </div>
+            <div class="product-price">
+              <span class="current-price">${{ "%.2f"|format(product.price) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4" data-aos="fade-up">
+      <a href="{{ url_for('shop.search') }}?q=new" class="btn btn-outline-primary">View All New Arrivals</a>
+    </div>
+  </div>
+</section><!-- /New Arrivals Section -->
+
+<!-- Best Sellers Section -->
+<section id="best-sellers" class="best-sellers section bg-light">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Best Sellers</h2>
+      <p>Our most popular products</p>
+    </div>
+
+    <div class="row gy-4">
+      {% for product in best_sellers %}
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ 100 * loop.index }}">
+        <div class="product-card">
+          <div class="product-image">
+            <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid">
+            <div class="product-badges">
+              <span class="badge-bestseller">Bestseller</span>
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="badge-sale">-{{ product.get_discount_percentage() }}%</span>
+              {% endif %}
+            </div>
+            <div class="product-actions">
+              {% if user %}
+              <a href="{{ url_for('shop.add_to_wishlist', product_id=product.id) }}" class="action-btn wishlist-btn" title="Add to Wishlist">
+                <i class="bi bi-heart"></i>
+              </a>
+              {% endif %}
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="action-btn view-btn" title="Quick View">
+                <i class="bi bi-eye"></i>
+              </a>
+            </div>
+            {% if product.is_in_stock() %}
+            <form action="{{ url_for('shop.add_to_cart', product_id=product.id) }}" method="POST" class="add-to-cart-form">
+              <button type="submit" class="cart-btn">
+                <i class="bi bi-cart-plus"></i> Add to Cart
+              </button>
+            </form>
+            {% else %}
+            <button class="cart-btn out-of-stock" disabled>
+              <i class="bi bi-x-circle"></i> Out of Stock
+            </button>
+            {% endif %}
+          </div>
+          <div class="product-info">
+            <div class="product-category">{{ product.category.name if product.category else 'Uncategorized' }}</div>
+            <h4 class="product-name">
+              <a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a>
+            </h4>
+            <div class="product-rating">
+              <div class="stars">
+                {% set avg_rating = product.get_average_rating() %}
+                {% for i in range(5) %}
+                  {% if i < avg_rating %}
+                    <i class="bi bi-star-fill text-warning"></i>
+                  {% else %}
+                    <i class="bi bi-star text-muted"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="rating-count">({{ product.get_review_count() }})</span>
+            </div>
+            <div class="product-price">
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="old-price">${{ "%.2f"|format(product.compare_price) }}</span>
+              {% endif %}
+              <span class="current-price">${{ "%.2f"|format(product.price) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4" data-aos="fade-up">
+      <a href="{{ url_for('shop.search') }}?q=bestseller" class="btn btn-outline-primary">View All Best Sellers</a>
+    </div>
+  </div>
+</section><!-- /Best Sellers Section -->
+
+<!-- Promo Banner Section -->
+<section id="promo-banner" class="promo-banner section">
+  <div class="container" data-aos="fade-up">
+    <div class="promo-content text-center">
+      <h2>Summer Sale - Up to 50% Off!</h2>
+      <p>Don't miss our biggest sale of the season. Limited time offer on selected items.</p>
+      <div class="countdown mb-4" data-count="2025-08-31">
+        <div class="countdown-item">
+          <span class="countdown-days">00</span>
+          <span>Days</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-hours">00</span>
+          <span>Hours</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-minutes">00</span>
+          <span>Minutes</span>
+        </div>
+        <div class="countdown-item">
+          <span class="countdown-seconds">00</span>
+          <span>Seconds</span>
+        </div>
+      </div>
+      <a href="{{ url_for('shop.search') }}?q=sale" class="btn btn-primary btn-lg">Shop the Sale</a>
+    </div>
+  </div>
+</section><!-- /Promo Banner Section -->
+
+<!-- Features Section -->
+<section id="features" class="features section">
+  <div class="container" data-aos="fade-up">
+    <div class="row gy-4">
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="feature-box text-center">
+          <div class="feature-icon">
+            <i class="bi bi-truck"></i>
+          </div>
+          <h4>Free Shipping</h4>
+          <p>Free shipping on all orders over $50</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="feature-box text-center">
+          <div class="feature-icon">
+            <i class="bi bi-arrow-clockwise"></i>
+          </div>
+          <h4>Easy Returns</h4>
+          <p>30-day money back guarantee</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="feature-box text-center">
+          <div class="feature-icon">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <h4>Secure Payment</h4>
+          <p>Your payment information is safe with us</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="feature-box text-center">
+          <div class="feature-icon">
+            <i class="bi bi-headset"></i>
+          </div>
+          <h4>24/7 Support</h4>
+          <p>Round-the-clock customer support</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /Features Section -->
+{% endblock %}
+
+{% block scripts %}
+<!-- Additional scripts for index page -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Countdown timer
+  function updateCountdown() {
+    const countdownElement = document.querySelector('.countdown');
+    if (!countdownElement) return;
+
+    const targetDate = new Date(countdownElement.getAttribute('data-count')).getTime();
+    const now = new Date().getTime();
+    const distance = targetDate - now;
+
+    if (distance < 0) {
+      countdownElement.innerHTML = '<div class="countdown-ended">Sale Ended!</div>';
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    const daysElement = countdownElement.querySelector('.countdown-days');
+    const hoursElement = countdownElement.querySelector('.countdown-hours');
+    const minutesElement = countdownElement.querySelector('.countdown-minutes');
+    const secondsElement = countdownElement.querySelector('.countdown-seconds');
+
+    if (daysElement) daysElement.textContent = days.toString().padStart(2, '0');
+    if (hoursElement) hoursElement.textContent = hours.toString().padStart(2, '0');
+    if (minutesElement) minutesElement.textContent = minutes.toString().padStart(2, '0');
+    if (secondsElement) secondsElement.textContent = seconds.toString().padStart(2, '0');
+  }
+
+  // Update countdown every second
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // Add to cart animation
+  const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+  addToCartForms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const button = this.querySelector('.cart-btn');
+      const originalText = button.innerHTML;
+
+      button.innerHTML = '<i class="bi bi-check"></i> Added!';
+      button.disabled = true;
+
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }, 2000);
+    });
+  });
+});
+</script>
+{% endblock %}

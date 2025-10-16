@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{% block title %}Admin Panel - Pavitra Enterprises{% endblock %}</title>
+
+    <!-- Favicons -->
+    <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
+
+    <!-- Bootstrap CSS -->
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+
+    <!-- Custom Admin CSS -->
+    <style>
+        .admin-sidebar {
+            min-height: 100vh;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            width: 250px;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .admin-main {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .sidebar-nav .nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
+        }
+        .sidebar-nav .nav-link:hover, .sidebar-nav .nav-link.active {
+            color: white;
+            background: #34495e;
+            border-left-color: #3498db;
+            text-decoration: none;
+        }
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-card .card-body {
+            padding: 25px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        .table-actions .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Ensure links are properly styled */
+        .sidebar-nav a {
+            text-decoration: none;
+        }
+
+        /* Floating Switch Button */
+        .floating-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .floating-switch .btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        .floating-switch .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
+            .admin-main {
+                margin-left: 0;
+            }
+            .floating-switch {
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <nav class="admin-sidebar col-md-3 col-lg-2">
+                <div class="position-sticky pt-3">
+                    <div class="sidebar-header px-3 py-4">
+                        <h4 class="text-white">
+                            <i class="bi bi-speedometer2"></i>
+                            Admin Panel
+                        </h4>
+                        <small class="text-muted">Pavitra Enterprises</small>
+                    </div>
+
+                    <ul class="nav flex-column sidebar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+                               href="{{ url_for('admin.dashboard') }}">
+                                <i class="bi bi-grid"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin.products', 'admin.new_product', 'admin.edit_product'] %}active{% endif %}"
+                               href="{{ url_for('admin.products') }}">
+                                <i class="bi bi-box-seam"></i>
+                                Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin.categories', 'admin.new_category'] %}active{% endif %}"
+                               href="{{ url_for('admin.categories') }}">
+                                <i class="bi bi-tags"></i>
+                                Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin.orders', 'admin.order_details'] %}active{% endif %}"
+                               href="{{ url_for('admin.orders') }}">
+                                <i class="bi bi-receipt"></i>
+                                Orders
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-warning" href="{{ url_for('shop.index') }}" target="_blank">
+                                <i class="bi bi-shop"></i>
+                                Back to Store
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="admin-main col-md-9 col-lg-10">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mt-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Floating Switch Button -->
+    <div class="floating-switch">
+        <div class="btn-group-vertical">
+            <a href="{{ url_for('shop.index') }}" class="btn btn-warning mb-2" target="_blank"
+               title="Go to Store" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi bi-shop"></i>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger"
+               title="Logout" data-bs-toggle="tooltip" data-bs-placement="left">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Initialize Tooltips -->
+    <script>
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>
