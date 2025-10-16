@@ -1,14 +1,42 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from models.product import Product
 from models.category import Category
 from models.order import Order
 from models.user import User
 from extension import db
-import json
-
-# ... rest of your admin_routes.py code ...
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+# File upload configuration
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_uploaded_file(file, category_name="products"):
+    if file and allowed_file(file.filename):
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', category_name)
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Save file
+        file_path = os.path.join(upload_dir, unique_filename)
+        file.save(file_path)
+
+        # Return relative URL for the image
+        return f"/static/uploads/{category_name}/{unique_filename}"
+    return None
 
 
 @admin_bp.before_request
@@ -52,14 +80,12 @@ def products():
     try:
         products = Product.query.all()
         categories = Category.query.all()
-        return render_template('admin/products.html',  # Changed from admin_new.html
+        return render_template('admin/products.html',
                                products=products,
                                categories=categories)
     except Exception as e:
         print(f"Products admin error: {e}")
         return redirect(url_for('admin.dashboard'))
-
-# Similarly update other routes to use appropriate templates
 
 
 @admin_bp.route('/products/new', methods=['GET', 'POST'])
@@ -80,7 +106,28 @@ def new_product():
             category_id = request.form.get('category_id', type=int)
             is_featured = bool(request.form.get('is_featured'))
             is_active = bool(request.form.get('is_active'))
+
+            # Handle image - either URL or file upload
             image_url = request.form.get('image_url')
+            image_file = request.files.get('image_file')
+
+            # Process file upload if provided
+            if image_file and image_file.filename:
+                if image_file.content_length > MAX_FILE_SIZE:
+                    flash('File size too large. Maximum 5MB allowed.', 'danger')
+                    return render_template('admin/admin_new.html', categories=categories)
+
+                # Get category name for folder structure
+                category = Category.query.get(category_id)
+                category_name = category.slug if category else "products"
+
+                uploaded_url = save_uploaded_file(image_file, category_name)
+                if uploaded_url:
+                    image_url = uploaded_url
+                    flash('Image uploaded successfully!', 'success')
+                else:
+                    flash('Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP', 'danger')
+                    return render_template('admin/admin_new.html', categories=categories)
 
             # Generate slug from name
             slug = name.lower().replace(' ', '-')
@@ -140,7 +187,31 @@ def edit_product(product_id):
             product.category_id = request.form.get('category_id', type=int)
             product.is_featured = bool(request.form.get('is_featured'))
             product.is_active = bool(request.form.get('is_active'))
-            product.image_url = request.form.get('image_url')
+
+            # Handle image update
+            image_url = request.form.get('image_url')
+            image_file = request.files.get('image_file')
+
+            # Process file upload if provided
+            if image_file and image_file.filename:
+                if image_file.content_length > MAX_FILE_SIZE:
+                    flash('File size too large. Maximum 5MB allowed.', 'danger')
+                    return render_template('admin/admin_new.html', product=product, categories=categories)
+
+                # Get category name for folder structure
+                category = Category.query.get(product.category_id)
+                category_name = category.slug if category else "products"
+
+                uploaded_url = save_uploaded_file(image_file, category_name)
+                if uploaded_url:
+                    product.image_url = uploaded_url
+                    flash('Image uploaded successfully!', 'success')
+                else:
+                    flash('Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP', 'danger')
+                    return render_template('admin/admin_new.html', product=product, categories=categories)
+            elif image_url:
+                # Use the provided URL
+                product.image_url = image_url
 
             db.session.commit()
             flash('Product updated successfully', 'success')
@@ -174,7 +245,7 @@ def delete_product(product_id):
 def categories():
     try:
         categories = Category.query.all()
-        return render_template('admin/admin_.html', categories=categories)
+        return render_template('admin/categories.html', categories=categories)
     except Exception as e:
         print(f"Categories admin error: {e}")
         return redirect(url_for('admin.dashboard'))
@@ -190,6 +261,21 @@ def new_category():
             image_url = request.form.get('image_url')
             is_active = bool(request.form.get('is_active'))
 
+            # Handle category image upload
+            image_file = request.files.get('image_file')
+            if image_file and image_file.filename:
+                if image_file.content_length > MAX_FILE_SIZE:
+                    flash('File size too large. Maximum 5MB allowed.', 'danger')
+                    return render_template('admin/categories.html')
+
+                uploaded_url = save_uploaded_file(image_file, "categories")
+                if uploaded_url:
+                    image_url = uploaded_url
+                    flash('Category image uploaded successfully!', 'success')
+                else:
+                    flash('Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP', 'danger')
+                    return render_template('admin/categories.html')
+
             category = Category(
                 name=name,
                 description=description,
@@ -204,7 +290,7 @@ def new_category():
             flash('Category created successfully', 'success')
             return redirect(url_for('admin.categories'))
 
-        return render_template('admin/admin_new.html', category=None)
+        return render_template('admin/categories.html')
 
     except Exception as e:
         print(f"New category error: {e}")
@@ -216,7 +302,7 @@ def new_category():
 def orders():
     try:
         orders = Order.query.order_by(Order.created_at.desc()).all()
-        return render_template('admin/admin_new.html', orders=orders)
+        return render_template('admin/orders.html', orders=orders)
     except Exception as e:
         print(f"Orders admin error: {e}")
         return redirect(url_for('admin.dashboard'))
@@ -226,7 +312,7 @@ def orders():
 def order_details(order_id):
     try:
         order = Order.query.get_or_404(order_id)
-        return render_template('admin/admin_new.html', order=order)
+        return render_template('admin/order_details.html', order=order)
     except Exception as e:
         print(f"Order details error: {e}")
         flash('Error loading order details', 'danger')
