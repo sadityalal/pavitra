@@ -76,17 +76,24 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">Product Image</label>
 
-                        <!-- Toggle Buttons -->
-                        <div class="btn-group w-100 mb-3" role="group">
-                            <input type="radio" class="btn-check" name="image_option" id="option_url" value="url" autocomplete="off" checked>
-                            <label class="btn btn-outline-primary" for="option_url">
-                                <i class="bi bi-link-45deg"></i> Use Image URL
-                            </label>
+                    <!-- Image Upload Section with Radio Buttons -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Product Image</label>
 
-                            <input type="radio" class="btn-check" name="image_option" id="option_upload" value="upload" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="option_upload">
-                                <i class="bi bi-upload"></i> Upload Image
-                            </label>
+                        <!-- Radio Button Options -->
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="image_option" id="option_url" value="url" checked>
+                                <label class="form-check-label" for="option_url">
+                                    <i class="bi bi-link-45deg me-1"></i> Use Image URL
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="image_option" id="option_upload" value="upload">
+                                <label class="form-check-label" for="option_upload">
+                                    <i class="bi bi-upload me-1"></i> Upload Image
+                                </label>
+                            </div>
                         </div>
 
                         <!-- URL Input Section -->
@@ -119,64 +126,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Current Image Display (for edit mode) -->
-                    {% if product and product.image_url %}
-                    <div class="mb-4">
-                        <label class="form-label">Current Image:</label>
-                        <div class="border rounded p-3 text-center bg-light">
-                            <img src="{{ product.image_url }}" alt="Current product image"
-                                 class="img-fluid rounded" style="max-height: 200px;">
-                            <div class="mt-2">
-                                <span class="badge bg-info">
-                                    <i class="bi bi-check-circle"></i> Current Image
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <div class="mb-3">
-                        <label for="short_description" class="form-label">Short Description</label>
-                        <textarea class="form-control" id="short_description" name="short_description" rows="2">{{ product.short_description if product }}</textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Full Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4">{{ product.description if product }}</textarea>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured"
-                                       {% if product and product.is_featured %}checked{% endif %}>
-                                <label class="form-check-label" for="is_featured">
-                                    Featured Product
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                       {% if not product or product.is_active %}checked{% endif %}>
-                                <label class="form-check-label" for="is_active">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('admin.products') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
-                            {% if product %}Update Product{% else %}Create Product{% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <div class="col-lg-4">
         <div class="card shadow">
@@ -222,7 +171,7 @@
 
 {% block scripts %}
 <script>
-// Toggle between URL and file upload sections
+// Toggle between URL and file upload sections with radio buttons
 document.addEventListener('DOMContentLoaded', function() {
     const urlOption = document.getElementById('option_url');
     const uploadOption = document.getElementById('option_upload');
