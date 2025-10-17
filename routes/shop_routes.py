@@ -628,3 +628,42 @@ def api_wishlist_count():
 @shop_bp.app_errorhandler(404)
 def not_found_error(error):
     return render_template('404.html', user=current_user()), 404
+
+
+
+# Add these context processors to your shop/routes.py
+
+@shop_bp.context_processor
+def inject_categories():
+    """Inject categories into all templates"""
+    try:
+        categories = Category.query.filter_by(is_active=True).all()
+        return dict(categories=categories)
+    except Exception as e:
+        print(f"Error loading categories: {e}")
+        return dict(categories=[])
+
+@shop_bp.context_processor
+def inject_featured_products():
+    """Inject featured products into all templates"""
+    try:
+        featured_products = Product.query.filter_by(
+            is_featured=True,
+            is_active=True
+        ).limit(4).all()
+        return dict(featured_products=featured_products)
+    except Exception as e:
+        print(f"Error loading featured products: {e}")
+        return dict(featured_products=[])
+
+@shop_bp.context_processor
+def inject_new_arrivals():
+    """Inject new arrivals into all templates"""
+    try:
+        new_arrivals = Product.query.filter_by(
+            is_active=True
+        ).order_by(Product.created_at.desc()).limit(4).all()
+        return dict(new_arrivals=new_arrivals)
+    except Exception as e:
+        print(f"Error loading new arrivals: {e}")
+        return dict(new_arrivals=[])

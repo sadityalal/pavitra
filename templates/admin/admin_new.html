@@ -72,9 +72,15 @@
                         </select>
                     </div>
 
-                    <!-- Image Upload Section with Toggle -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Product Image</label>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ product.description if product }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="short_description" class="form-label">Short Description</label>
+                        <textarea class="form-control" id="short_description" name="short_description" rows="2">{{ product.short_description if product }}</textarea>
+                    </div>
 
                     <!-- Image Upload Section with Radio Buttons -->
                     <div class="mb-4">
@@ -127,6 +133,76 @@
                         </div>
                     </div>
 
+                    <!-- Additional Product Fields -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="brand" class="form-label">Brand</label>
+                            <input type="text" class="form-control" id="brand" name="brand"
+                                   value="{{ product.brand if product }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="weight" class="form-label">Weight (kg)</label>
+                            <input type="number" step="0.01" class="form-control" id="weight" name="weight"
+                                   value="{{ product.weight if product }}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="dimensions" class="form-label">Dimensions (LxWxH)</label>
+                            <input type="text" class="form-control" id="dimensions" name="dimensions"
+                                   value="{{ product.dimensions if product }}" placeholder="10x5x2">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="slug" class="form-label">URL Slug</label>
+                            <input type="text" class="form-control" id="slug" name="slug"
+                                   value="{{ product.slug if product }}" placeholder="product-name">
+                        </div>
+                    </div>
+
+                    <!-- Product Status Toggles -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured"
+                                       {% if product and product.is_featured %}checked{% endif %}>
+                                <label class="form-check-label" for="is_featured">Featured Product</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                       {% if not product or product.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="track_inventory" name="track_inventory"
+                                       {% if not product or product.track_inventory %}checked{% endif %}>
+                                <label class="form-check-label" for="track_inventory">Track Inventory</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBMIT BUTTON - Added Here -->
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if product %}
+                                <i class="bi bi-check-circle"></i> Update Product
+                            {% else %}
+                                <i class="bi bi-plus-circle"></i> Add Product
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="col-lg-4">
         <div class="card shadow">
             <div class="card-header">
@@ -163,6 +239,23 @@
                     <li>For S3 URLs, ensure proper permissions</li>
                     <li>Uploaded images are organized by category</li>
                 </ul>
+            </div>
+        </div>
+
+        <!-- Product Status Card -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="bi bi-gear"></i> Product Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <p><strong>Active:</strong> Product is visible to customers</p>
+                    <p><strong>Featured:</strong> Product appears in featured sections</p>
+                    <p><strong>Track Inventory:</strong> Enable stock management</p>
+                    <p><strong>URL Slug:</strong> Used in product URLs (auto-generated if empty)</p>
+                </div>
             </div>
         </div>
     </div>
@@ -278,6 +371,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Trigger the toggle to update UI
     document.getElementById('option_url').dispatchEvent(new Event('change'));
     {% endif %}
+});
+
+// Auto-generate slug from product name
+document.getElementById('name').addEventListener('blur', function() {
+    const slugField = document.getElementById('slug');
+    if (!slugField.value) {
+        const name = this.value;
+        const slug = name.toLowerCase()
+            .replace(/[^\w ]+/g, '')
+            .replace(/ +/g, '-');
+        slugField.value = slug;
+    }
 });
 </script>
 

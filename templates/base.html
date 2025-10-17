@@ -139,9 +139,9 @@
                 <i class="bi bi-person"></i>
               </button>
               <div class="dropdown-menu">
-                {% if user %}
+                {% if current_user.is_authenticated %}
                 <div class="dropdown-header">
-                  <h6>Welcome, <span class="text-primary">{{ user.name }}</span></h6>
+                  <h6>Welcome, <span class="text-primary">{{ current_user.name }}</span></h6>
                   <p class="mb-0">Access account &amp; manage orders</p>
                 </div>
                 <div class="dropdown-body">
@@ -157,7 +157,7 @@
                     <i class="bi bi-heart me-2"></i>
                     <span>My Wishlist</span>
                   </a>
-                  {% if user.is_admin %}
+                  {% if current_user.is_admin %}
                   <a class="dropdown-item d-flex align-items-center" href="{{ url_for('admin.dashboard') }}">
                     <i class="bi bi-speedometer2 me-2"></i>
                     <span>Admin Panel</span>
@@ -184,7 +184,7 @@
             <a href="{{ url_for('shop.wishlist') }}" class="header-action-btn d-none d-md-block position-relative">
               <i class="bi bi-heart"></i>
               <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlist-count">
-                {% if user %}{{ user.wishlists|length }}{% else %}0{% endif %}
+                {% if current_user.is_authenticated %}{{ current_user.wishlists|length if current_user.wishlists else 0 }}{% else %}0{% endif %}
               </span>
             </a>
 
@@ -216,20 +216,6 @@
             <li><a href="{{ url_for('shop.index') }}" class="{% if request.endpoint == 'shop.index' %}active{% endif %}">Home</a></li>
             <li><a href="{{ url_for('shop.about') }}" class="{% if request.endpoint == 'shop.about' %}active{% endif %}">About</a></li>
 
-            <!-- Categories Dropdown -->
-            <li class="dropdown">
-              <a href="{{ url_for('shop.category') }}" class="{% if request.endpoint == 'shop.category' %}active{% endif %}">
-                <span>Categories</span> <i class="bi bi-chevron-down toggle-dropdown"></i>
-              </a>
-              <ul>
-                {% for category in categories %}
-                <li><a href="{{ url_for('shop.category', slug=category.slug) }}">{{ category.name }}</a></li>
-                {% endfor %}
-                <li><hr class="dropdown-divider"></li>
-                <li><a href="{{ url_for('shop.category') }}">View All Categories</a></li>
-              </ul>
-            </li>
-
             <!-- Products Mega Menu -->
             <li class="products-megamenu-1">
               <a href="#"><span>Shop</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
@@ -253,7 +239,7 @@
                       <li><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></li>
                       {% endfor %}
                     {% endif %}
-                    <li><a href="{{ url_for('shop.category', slug=category.slug) }}">View All</a></li>
+                    <li><a href="{{ url_for('shop.category', slug=category.slug) }}">View All {{ category.name }}</a></li>
                   </ul>
                 </li>
                 {% endfor %}
@@ -287,11 +273,11 @@
                         <div class="product-image">
                           <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" loading="lazy">
                           {% if product.compare_price and product.compare_price > product.price %}
-                          <span class="badge-sale">-{{ product.get_discount_percentage() }}%</span>
+                          <span class="badge-sale">-{{ ((product.compare_price - product.price) / product.compare_price * 100)|round|int }}%</span>
                           {% endif %}
                         </div>
                         <div class="product-info">
-                          <h5>{{ product.name }}</h5>
+                          <h5><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></h5>
                           <p class="price">
                             {% if product.compare_price and product.compare_price > product.price %}
                             <span class="original-price">${{ "%.2f"|format(product.compare_price) }}</span>
@@ -322,7 +308,7 @@
                           <span class="badge-new">New</span>
                         </div>
                         <div class="product-info">
-                          <h5>{{ product.name }}</h5>
+                          <h5><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></h5>
                           <p class="price">${{ "%.2f"|format(product.price) }}</p>
                           <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="btn-view">View Product</a>
                         </div>
@@ -343,14 +329,16 @@
                     {% if categories %}
                       {% for category in categories %}
                       <div class="category-column">
-                        <h4>{{ category.name }}</h4>
+                        <h4><a href="{{ url_for('shop.category', slug=category.slug) }}">{{ category.name }}</a></h4>
                         <ul>
                           {% if category.products %}
                             {% for product in category.products[:5] %}
                             <li><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></li>
                             {% endfor %}
+                          {% else %}
+                            <li><span class="text-muted">No products available</span></li>
                           {% endif %}
-                          <li><a href="{{ url_for('shop.category', slug=category.slug) }}" class="view-all">View all</a></li>
+                          <li><a href="{{ url_for('shop.category', slug=category.slug) }}" class="view-all">View all {{ category.name }}</a></li>
                         </ul>
                       </div>
                       {% endfor %}
@@ -367,7 +355,7 @@
             <li><a href="{{ url_for('shop.cart') }}" class="{% if request.endpoint == 'shop.cart' %}active{% endif %}">Cart</a></li>
             <li><a href="{{ url_for('shop.contact') }}" class="{% if request.endpoint == 'shop.contact' %}active{% endif %}">Contact</a></li>
 
-            {% if user and user.is_admin %}
+            {% if current_user.is_authenticated and current_user.is_admin %}
             <li><a href="{{ url_for('admin.dashboard') }}" class="text-warning">Admin</a></li>
             {% endif %}
           </ul>
@@ -580,7 +568,7 @@
     // Update counts when page loads
     document.addEventListener('DOMContentLoaded', function() {
       updateCartCount();
-      {% if user %}
+      {% if current_user.is_authenticated %}
       updateWishlistCount();
       {% endif %}
     });

@@ -1,781 +1,349 @@
 {% extends "base.html" %}
 
-{% block title %}Category - NiceShop{% endblock %}
+{% block title %}{{ category.name if category else 'All Categories' }} - Pavitra Enterprises{% endblock %}
+{% block description %}{{ category.description if category else 'Browse our complete collection of products across all categories.' }}{% endblock %}
+{% block keywords %}{{ category.name if category }}, products, shopping, ecommerce{% endblock %}
 
 {% block content %}
-<!-- Page Title -->
-<div class="page-title light-background">
-  <div class="container d-lg-flex justify-content-between align-items-center">
-    <h1 class="mb-2 mb-lg-0">Category</h1>
-    <nav class="breadcrumbs">
-      <ol>
-        <li><a href="{{ url_for('shop.index') }}">Home</a></li>
-        <li class="current">Category</li>
-      </ol>
-    </nav>
-  </div>
-</div><!-- End Page Title -->
+<!-- Category Header Section -->
+<section class="category-header section">
+  <div class="container" data-aos="fade-up">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('shop.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('shop.category') }}">Categories</a></li>
+            {% if category %}
+            <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+            {% else %}
+            <li class="breadcrumb-item active" aria-current="page">All Products</li>
+            {% endif %}
+          </ol>
+        </nav>
 
-<div class="container">
-  <div class="row">
+        <h1 class="category-title">
+          {% if category %}
+            {{ category.name }}
+          {% else %}
+            All Products
+          {% endif %}
+        </h1>
 
-    <div class="col-lg-4 sidebar">
+        {% if category %}
+        <p class="category-description">{{ category.description or 'Explore our amazing collection of ' + category.name }}</p>
+        {% else %}
+        <p class="category-description">Browse our complete collection of products across all categories</p>
+        {% endif %}
 
-      <div class="widgets-container">
-
-        <!-- Product Categories Widget -->
-        <div class="product-categories-widget widget-item">
-
-          <h3 class="widget-title">Categories</h3>
-
-          <ul class="category-tree list-unstyled mb-0">
-            <!-- Clothing Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-clothing-subcategories" aria-expanded="false" aria-controls="categories-1-clothing-subcategories">
-                <a href="javascript:void(0)" class="category-link">Clothing</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-clothing-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Men's Wear</a></li>
-                <li><a href="#" class="subcategory-link">Women's Wear</a></li>
-                <li><a href="#" class="subcategory-link">Kids' Clothing</a></li>
-                <li><a href="#" class="subcategory-link">Accessories</a></li>
-              </ul>
-            </li>
-
-            <!-- Electronics Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-electronics-subcategories" aria-expanded="false" aria-controls="categories-1-electronics-subcategories">
-                <a href="javascript:void(0)" class="category-link">Electronics</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-electronics-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Smartphones</a></li>
-                <li><a href="#" class="subcategory-link">Laptops</a></li>
-                <li><a href="#" class="subcategory-link">Tablets</a></li>
-                <li><a href="#" class="subcategory-link">Accessories</a></li>
-              </ul>
-            </li>
-
-            <!-- Home & Kitchen Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-home-subcategories" aria-expanded="false" aria-controls="categories-1-home-subcategories">
-                <a href="javascript:void(0)" class="category-link">Home &amp; Kitchen</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-home-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Furniture</a></li>
-                <li><a href="#" class="subcategory-link">Kitchen Appliances</a></li>
-                <li><a href="#" class="subcategory-link">Home Decor</a></li>
-                <li><a href="#" class="subcategory-link">Bedding</a></li>
-              </ul>
-            </li>
-
-            <!-- Beauty & Personal Care Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-beauty-subcategories" aria-expanded="false" aria-controls="categories-1-beauty-subcategories">
-                <a href="javascript:void(0)" class="category-link">Beauty &amp; Personal Care</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-beauty-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Skincare</a></li>
-                <li><a href="#" class="subcategory-link">Makeup</a></li>
-                <li><a href="#" class="subcategory-link">Hair Care</a></li>
-                <li><a href="#" class="subcategory-link">Fragrances</a></li>
-              </ul>
-            </li>
-
-            <!-- Sports & Outdoors Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-sports-subcategories" aria-expanded="false" aria-controls="categories-1-sports-subcategories">
-                <a href="javascript:void(0)" class="category-link">Sports &amp; Outdoors</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-sports-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Fitness Equipment</a></li>
-                <li><a href="#" class="subcategory-link">Outdoor Gear</a></li>
-                <li><a href="#" class="subcategory-link">Sports Apparel</a></li>
-                <li><a href="#" class="subcategory-link">Team Sports</a></li>
-              </ul>
-            </li>
-
-            <!-- Books Category (no subcategories) -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header">
-                <a href="#" class="category-link">Books</a>
-              </div>
-            </li>
-
-            <!-- Toys & Games Category -->
-            <li class="category-item">
-              <div class="d-flex justify-content-between align-items-center category-header collapsed" data-bs-toggle="collapse" data-bs-target="#categories-1-toys-subcategories" aria-expanded="false" aria-controls="categories-1-toys-subcategories">
-                <a href="javascript:void(0)" class="category-link">Toys &amp; Games</a>
-                <span class="category-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                  <i class="bi bi-chevron-up"></i>
-                </span>
-              </div>
-              <ul id="categories-1-toys-subcategories" class="subcategory-list list-unstyled collapse ps-3 mt-2">
-                <li><a href="#" class="subcategory-link">Board Games</a></li>
-                <li><a href="#" class="subcategory-link">Puzzles</a></li>
-                <li><a href="#" class="subcategory-link">Action Figures</a></li>
-                <li><a href="#" class="subcategory-link">Educational Toys</a></li>
-              </ul>
-            </li>
-          </ul>
-
-        </div><!--/Product Categories Widget -->
-
-        <!-- Pricing Range Widget -->
-        <div class="pricing-range-widget widget-item">
-
-          <h3 class="widget-title">Price Range</h3>
-
-          <div class="price-range-container">
-            <div class="current-range mb-3">
-              <span class="min-price">$0</span>
-              <span class="max-price float-end">$1000</span>
-            </div>
-
-            <div class="range-slider">
-              <div class="slider-track"></div>
-              <div class="slider-progress"></div>
-              <input type="range" class="min-range" min="0" max="1000" value="0" step="10">
-              <input type="range" class="max-range" min="0" max="1000" value="500" step="10">
-            </div>
-
-            <div class="price-inputs mt-3">
-              <div class="row g-2">
-                <div class="col-6">
-                  <div class="input-group input-group-sm">
-                    <span class="input-group-text">$</span>
-                    <input type="number" class="form-control min-price-input" placeholder="Min" min="0" max="1000" value="0" step="10">
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="input-group input-group-sm">
-                    <span class="input-group-text">$</span>
-                    <input type="number" class="form-control max-price-input" placeholder="Max" min="0" max="1000" value="500" step="10">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="filter-actions mt-3">
-              <button type="button" class="btn btn-sm btn-primary w-100">Apply Filter</button>
-            </div>
-          </div>
-
-        </div><!--/Pricing Range Widget -->
-
-        <!-- Brand Filter Widget -->
-        <div class="brand-filter-widget widget-item">
-
-          <h3 class="widget-title">Filter by Brand</h3>
-
-          <div class="brand-filter-content">
-            <div class="brand-search">
-              <input type="text" class="form-control" placeholder="Search brands...">
-              <i class="bi bi-search"></i>
-            </div>
-
-            <div class="brand-list">
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand1">
-                  <label class="form-check-label" for="brand1">
-                    Nike
-                    <span class="brand-count">(24)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand2">
-                  <label class="form-check-label" for="brand2">
-                    Adidas
-                    <span class="brand-count">(18)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand3">
-                  <label class="form-check-label" for="brand3">
-                    Puma
-                    <span class="brand-count">(12)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand4">
-                  <label class="form-check-label" for="brand4">
-                    Reebok
-                    <span class="brand-count">(9)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand5">
-                  <label class="form-check-label" for="brand5">
-                    Under Armour
-                    <span class="brand-count">(7)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand6">
-                  <label class="form-check-label" for="brand6">
-                    New Balance
-                    <span class="brand-count">(6)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand7">
-                  <label class="form-check-label" for="brand7">
-                    Converse
-                    <span class="brand-count">(5)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="brand-item">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="brand8">
-                  <label class="form-check-label" for="brand8">
-                    Vans
-                    <span class="brand-count">(4)</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div class="brand-actions">
-              <button class="btn btn-sm btn-outline-primary">Apply Filter</button>
-              <button class="btn btn-sm btn-link">Clear All</button>
-            </div>
-          </div>
-
-        </div><!--/Brand Filter Widget -->
-
-        <!-- Color Filter Widget -->
-        <div class="color-filter-widget widget-item">
-
-          <h3 class="widget-title">Filter by Color</h3>
-
-          <div class="color-filter-content">
-            <div class="color-options">
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="black" id="color-black">
-                <label class="form-check-label" for="color-black">
-                  <span class="color-swatch" style="background-color: #000000;" title="Black"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="white" id="color-white">
-                <label class="form-check-label" for="color-white">
-                  <span class="color-swatch" style="background-color: #ffffff;" title="White"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="red" id="color-red">
-                <label class="form-check-label" for="color-red">
-                  <span class="color-swatch" style="background-color: #e74c3c;" title="Red"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="blue" id="color-blue">
-                <label class="form-check-label" for="color-blue">
-                  <span class="color-swatch" style="background-color: #3498db;" title="Blue"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="green" id="color-green">
-                <label class="form-check-label" for="color-green">
-                  <span class="color-swatch" style="background-color: #2ecc71;" title="Green"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="yellow" id="color-yellow">
-                <label class="form-check-label" for="color-yellow">
-                  <span class="color-swatch" style="background-color: #f1c40f;" title="Yellow"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="purple" id="color-purple">
-                <label class="form-check-label" for="color-purple">
-                  <span class="color-swatch" style="background-color: #9b59b6;" title="Purple"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="orange" id="color-orange">
-                <label class="form-check-label" for="color-orange">
-                  <span class="color-swatch" style="background-color: #e67e22;" title="Orange"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="pink" id="color-pink">
-                <label class="form-check-label" for="color-pink">
-                  <span class="color-swatch" style="background-color: #fd79a8;" title="Pink"></span>
-                </label>
-              </div>
-
-              <div class="form-check color-option">
-                <input class="form-check-input" type="checkbox" value="brown" id="color-brown">
-                <label class="form-check-label" for="color-brown">
-                  <span class="color-swatch" style="background-color: #795548;" title="Brown"></span>
-                </label>
-              </div>
-            </div>
-
-            <div class="filter-actions mt-3">
-              <button type="button" class="btn btn-sm btn-outline-secondary">Clear All</button>
-              <button type="button" class="btn btn-sm btn-primary">Apply Filter</button>
-            </div>
-          </div>
-
-        </div><!--/Color Filter Widget -->
-
+        <div class="category-stats">
+          <span class="product-count">{{ products|length }} products found</span>
+          {% if category %}
+          <span class="category-badge">{{ category.name }}</span>
+          {% endif %}
+        </div>
       </div>
 
-    </div>
-
-    <div class="col-lg-8">
-
-      <!-- Category Header Section -->
-      <section id="category-header" class="category-header section">
-
-        <div class="container" data-aos="fade-up">
-
-          <!-- Filter and Sort Options -->
-          <div class="filter-container mb-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="row g-3">
-              <div class="col-12 col-md-6 col-lg-4">
-                <div class="filter-item search-form">
-                  <label for="productSearch" class="form-label">Search Products</label>
-                  <div class="input-group">
-                    <input type="text" class="form-control" id="productSearch" placeholder="Search for products..." aria-label="Search for products">
-                    <button class="btn search-btn" type="button">
-                      <i class="bi bi-search"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6 col-lg-2">
-                <div class="filter-item">
-                  <label for="priceRange" class="form-label">Price Range</label>
-                  <select class="form-select" id="priceRange">
-                    <option selected="">All Prices</option>
-                    <option>Under $25</option>
-                    <option>$25 to $50</option>
-                    <option>$50 to $100</option>
-                    <option>$100 to $200</option>
-                    <option>$200 &amp; Above</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6 col-lg-2">
-                <div class="filter-item">
-                  <label for="sortBy" class="form-label">Sort By</label>
-                  <select class="form-select" id="sortBy">
-                    <option selected="">Featured</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                    <option>Customer Rating</option>
-                    <option>Newest Arrivals</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="col-12 col-md-6 col-lg-4">
-                <div class="filter-item">
-                  <label class="form-label">View</label>
-                  <div class="d-flex align-items-center">
-                    <div class="view-options me-3">
-                      <button type="button" class="btn view-btn active" data-view="grid" aria-label="Grid view">
-                        <i class="bi bi-grid-3x3-gap-fill"></i>
-                      </button>
-                      <button type="button" class="btn view-btn" data-view="list" aria-label="List view">
-                        <i class="bi bi-list-ul"></i>
-                      </button>
-                    </div>
-                    <div class="items-per-page">
-                      <select class="form-select" id="itemsPerPage" aria-label="Items per page">
-                        <option value="12">12 per page</option>
-                        <option value="24">24 per page</option>
-                        <option value="48">48 per page</option>
-                        <option value="96">96 per page</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row mt-3">
-              <div class="col-12" data-aos="fade-up" data-aos-delay="200">
-                <div class="active-filters">
-                  <span class="active-filter-label">Active Filters:</span>
-                  <div class="filter-tags">
-                    <span class="filter-tag">
-                      Electronics <button class="filter-remove"><i class="bi bi-x"></i></button>
-                    </span>
-                    <span class="filter-tag">
-                      $50 to $100 <button class="filter-remove"><i class="bi bi-x"></i></button>
-                    </span>
-                    <button class="clear-all-btn">Clear All</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+      <div class="col-lg-4 text-lg-end">
+        <div class="category-image">
+          {% if category and category.image_url %}
+          <img src="{{ category.image_url }}" alt="{{ category.name }}" class="img-fluid rounded">
+          {% else %}
+          <div class="category-placeholder">
+            <i class="bi bi-grid-3x3-gap"></i>
           </div>
-
+          {% endif %}
         </div>
-
-      </section><!-- /Category Header Section -->
-
-      <!-- Category Product List Section -->
-      <section id="category-product-list" class="category-product-list section">
-
-        <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-          <div class="row g-4">
-            <!-- Product 1 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-f-1.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-f-2.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Women's Fashion</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=1) }}">Tempor Incididunt</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$129.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.8 <span>(42)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="100">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-m-1.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-m-2.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="product-badge new">New</div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Men's Collection</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=2) }}">Elit Consectetur</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$95.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.6 <span>(28)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="200">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-f-3.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-f-4.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="product-badge sale">-25%</div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Accessories</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=3) }}">Adipiscing Magna</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">
-                      $75.00
-                      <span class="original-price">$99.00</span>
-                    </div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.9 <span>(56)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 4 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="300">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-m-3.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-m-4.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Footwear</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=4) }}">Labore Dolore</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$145.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.7 <span>(35)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 5 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="400">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-f-5.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-f-6.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Men's Fashion</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=5) }}">Magna Aliqua</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$89.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.5 <span>(23)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 6 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="500">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-m-5.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-m-6.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="product-badge sale">-15%</div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Women's Fashion</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=6) }}">Eiusmod Tempor</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">
-                      $110.00
-                      <span class="original-price">$129.00</span>
-                    </div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.8 <span>(47)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 7 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="600">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-f-7.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-f-8.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Accessories</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=7) }}">Incididunt Labore</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$55.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.6 <span>(31)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Product 8 -->
-            <div class="col-6 col-xl-4">
-              <div class="product-card" data-aos="zoom-in" data-aos-delay="700">
-                <div class="product-image">
-                  <img src="{{ url_for('static', filename='img/product/product-m-7.webp') }}" class="main-image img-fluid" alt="Product">
-                  <img src="{{ url_for('static', filename='img/product/product-m-8.webp') }}" class="hover-image img-fluid" alt="Product Variant">
-                  <div class="product-overlay">
-                    <div class="product-actions">
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
-                        <i class="bi bi-eye"></i>
-                      </button>
-                      <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="product-badge new">New</div>
-                </div>
-                <div class="product-details">
-                  <div class="product-category">Men's Fashion</div>
-                  <h4 class="product-title"><a href="{{ url_for('shop.product_details', pid=8) }}">Aliqua Magna</a></h4>
-                  <div class="product-meta">
-                    <div class="product-price">$79.00</div>
-                    <div class="product-rating">
-                      <i class="bi bi-star-fill"></i>
-                      4.7 <span>(39)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section><!-- /Category Product List Section -->
-
-      <!-- Category Pagination Section -->
-      <section id="category-pagination" class="category-pagination section">
-
-        <div class="container">
-          <nav class="d-flex justify-content-center" aria-label="Page navigation">
-            <ul>
-              <li>
-                <a href="#" aria-label="Previous page">
-                  <i class="bi bi-arrow-left"></i>
-                  <span class="d-none d-sm-inline">Previous</span>
-                </a>
-              </li>
-
-              <li><a href="#" class="active">1</a></li>
-              <li><a href="#">2</a></li>
-              <li><a href="#">3</a></li>
-              <li class="ellipsis">...</li>
-              <li><a href="#">8</a></li>
-              <li><a href="#">9</a></li>
-              <li><a href="#">10</a></li>
-
-              <li>
-                <a href="#" aria-label="Next page">
-                  <span class="d-none d-sm-inline">Next</span>
-                  <i class="bi bi-arrow-right"></i>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-      </section><!-- /Category Pagination Section -->
-
+      </div>
     </div>
-
   </div>
-</div>
+</section>
+
+<!-- Category Filters & Products Section -->
+<section class="category-products section">
+  <div class="container">
+    <div class="row">
+      <!-- Sidebar Filters -->
+      <div class="col-lg-3" data-aos="fade-right">
+        <div class="filters-sidebar">
+          <div class="filter-group">
+            <div class="filter-header">
+              <h5>Categories</h5>
+            </div>
+            <div class="filter-content">
+              <div class="category-list">
+                <a href="{{ url_for('shop.category') }}" class="category-item {% if not category %}active{% endif %}">
+                  <span>All Categories</span>
+                  <span class="count">({{ total_products }})</span>
+                </a>
+                {% for cat in categories %}
+                <a href="{{ url_for('shop.category', slug=cat.slug) }}" class="category-item {% if category and category.id == cat.id %}active{% endif %}">
+                  <span>{{ cat.name }}</span>
+                  <span class="count">({{ cat.products|length }})</span>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-header">
+              <h5>Price Range</h5>
+            </div>
+            <div class="filter-content">
+              <div class="price-filter">
+                <div class="price-inputs">
+                  <input type="number" id="min-price" placeholder="Min" value="{{ request.args.get('min_price', '') }}">
+                  <span>-</span>
+                  <input type="number" id="max-price" placeholder="Max" value="{{ request.args.get('max_price', '') }}">
+                </div>
+                <button id="apply-price-filter" class="btn btn-sm btn-primary mt-2">Apply</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-header">
+              <h5>Availability</h5>
+            </div>
+            <div class="filter-content">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="in-stock" {% if request.args.get('in_stock') %}checked{% endif %}>
+                <label class="form-check-label" for="in-stock">
+                  In Stock Only
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-header">
+              <h5>Sort By</h5>
+            </div>
+            <div class="filter-content">
+              <select class="form-select" id="sort-by">
+                <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>Name A-Z</option>
+                <option value="rating" {% if request.args.get('sort') == 'rating' %}selected{% endif %}>Highest Rated</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="clear-filters" class="btn btn-outline-secondary w-100 mt-3">Clear All Filters</button>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="col-lg-9" data-aos="fade-left">
+        <!-- Products Header -->
+        <div class="products-header mb-4">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="view-options">
+                <button class="view-btn active" data-view="grid">
+                  <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                  <i class="bi bi-list"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="products-meta">
+                <span>Showing {{ products|length }} of {{ total_products }} products</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="products-container">
+          {% if products %}
+          <div class="row gy-4">
+            {% for product in products %}
+            <div class="col-xl-4 col-md-6">
+              <div class="product-card">
+                <div class="product-image">
+                  <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" class="img-fluid">
+                  <div class="product-badges">
+                    {% if product.is_featured %}
+                    <span class="badge-featured">Featured</span>
+                    {% endif %}
+                    {% if product.compare_price and product.compare_price > product.price %}
+                    <span class="badge-sale">-{{ product.get_discount_percentage() }}%</span>
+                    {% endif %}
+                    {% if product.is_new() %}
+                    <span class="badge-new">New</span>
+                    {% endif %}
+                    {% if product.is_low_stock() %}
+                    <span class="badge-warning">Low Stock</span>
+                    {% endif %}
+                  </div>
+                  <div class="product-actions">
+                    {% if user %}
+                    <a href="{{ url_for('shop.add_to_wishlist', product_id=product.id) }}" class="action-btn wishlist-btn" title="Add to Wishlist">
+                      <i class="bi bi-heart"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="action-btn view-btn" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </div>
+                  {% if product.is_in_stock() %}
+                  <form action="{{ url_for('shop.add_to_cart', product_id=product.id) }}" method="POST" class="add-to-cart-form">
+                    <button type="submit" class="cart-btn">
+                      <i class="bi bi-cart-plus"></i> Add to Cart
+                    </button>
+                  </form>
+                  {% else %}
+                  <button class="cart-btn out-of-stock" disabled>
+                    <i class="bi bi-x-circle"></i> Out of Stock
+                  </button>
+                  {% endif %}
+                </div>
+                <div class="product-info">
+                  <div class="product-category">{{ product.category.name if product.category else 'Uncategorized' }}</div>
+                  <h4 class="product-name">
+                    <a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a>
+                  </h4>
+                  <div class="product-rating">
+                    <div class="stars">
+                      {% set avg_rating = product.get_average_rating() %}
+                      {% for i in range(5) %}
+                        {% if i < avg_rating %}
+                          <i class="bi bi-star-fill text-warning"></i>
+                        {% else %}
+                          <i class="bi bi-star text-muted"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <span class="rating-count">({{ product.get_review_count() }})</span>
+                  </div>
+                  <div class="product-price">
+                    {% if product.compare_price and product.compare_price > product.price %}
+                    <span class="old-price">${{ "%.2f"|format(product.compare_price) }}</span>
+                    {% endif %}
+                    <span class="current-price">${{ "%.2f"|format(product.price) }}</span>
+                  </div>
+                  {% if product.is_low_stock() and product.is_in_stock() %}
+                  <div class="stock-info">
+                    <small class="text-warning">Only {{ product.inventory_quantity }} left!</small>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <div class="empty-state">
+              <i class="bi bi-search display-1 text-muted"></i>
+              <h3>No Products Found</h3>
+              <p class="text-muted">We couldn't find any products matching your criteria.</p>
+              <a href="{{ url_for('shop.category') }}" class="btn btn-primary">Browse All Products</a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Load More Button (if pagination is implemented) -->
+        {% if has_more %}
+        <div class="text-center mt-5">
+          <button id="load-more" class="btn btn-outline-primary" data-page="2">Load More Products</button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // View toggle
+  const viewButtons = document.querySelectorAll('.view-btn');
+  const productsContainer = document.getElementById('products-container');
+
+  viewButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      viewButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+
+      const view = this.getAttribute('data-view');
+      productsContainer.setAttribute('data-view', view);
+    });
+  });
+
+  // Price filter
+  document.getElementById('apply-price-filter').addEventListener('click', function() {
+    const minPrice = document.getElementById('min-price').value;
+    const maxPrice = document.getElementById('max-price').value;
+    applyFilters();
+  });
+
+  // Sort by
+  document.getElementById('sort-by').addEventListener('change', function() {
+    applyFilters();
+  });
+
+  // In stock filter
+  document.getElementById('in-stock').addEventListener('change', function() {
+    applyFilters();
+  });
+
+  // Clear filters
+  document.getElementById('clear-filters').addEventListener('click', function() {
+    document.getElementById('min-price').value = '';
+    document.getElementById('max-price').value = '';
+    document.getElementById('sort-by').value = 'newest';
+    document.getElementById('in-stock').checked = false;
+    applyFilters();
+  });
+
+  function applyFilters() {
+    const params = new URLSearchParams();
+
+    // Add current category if exists
+    {% if category %}
+    params.append('category', '{{ category.slug }}');
+    {% endif %}
+
+    // Add filters
+    const minPrice = document.getElementById('min-price').value;
+    const maxPrice = document.getElementById('max-price').value;
+    const sortBy = document.getElementById('sort-by').value;
+    const inStock = document.getElementById('in-stock').checked;
+
+    if (minPrice) params.append('min_price', minPrice);
+    if (maxPrice) params.append('max_price', maxPrice);
+    if (sortBy) params.append('sort', sortBy);
+    if (inStock) params.append('in_stock', 'true');
+
+    window.location.href = '{{ url_for("shop.category") }}?' + params.toString();
+  }
+
+  // Add to cart animation
+  const addToCartForms = document.querySelectorAll('.add-to-cart-form');
+  addToCartForms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const button = this.querySelector('.cart-btn');
+      const originalText = button.innerHTML;
+
+      button.innerHTML = '<i class="bi bi-check"></i> Added!';
+      button.disabled = true;
+
+      // Submit the form after animation
+      setTimeout(() => {
+        form.submit();
+      }, 500);
+    });
+  });
+});
+</script>
 {% endblock %}
