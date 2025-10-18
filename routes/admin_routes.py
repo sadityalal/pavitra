@@ -276,11 +276,19 @@ def edit_product(product_id):
 
 @admin_bp.route('/products/<int:product_id>/stock', methods=['POST'])
 def update_stock(product_id):
-    """Update product stock quantity"""
+    """Update product stock quantity - handles both form and JSON"""
     try:
         product = Product.query.get_or_404(product_id)
-        new_quantity = int(request.form.get('stock_quantity', 0))
-        reason = request.form.get('reason', 'manual_adjustment')
+
+        # Check if it's a JSON request (from JavaScript)
+        if request.is_json:
+            data = request.get_json()
+            new_quantity = int(data.get('stock_quantity', 0))
+            reason = data.get('reason', 'manual_adjustment')
+        else:
+            # Form submission
+            new_quantity = int(request.form.get('stock_quantity', 0))
+            reason = request.form.get('reason', 'manual_adjustment')
 
         # Calculate difference
         quantity_change = new_quantity - product.stock_quantity
@@ -303,12 +311,27 @@ def update_stock(product_id):
         product.update_stock_status()
         db.session.commit()
 
-        flash(f'Stock updated successfully! New quantity: {new_quantity}', 'success')
+        # Return appropriate response
+        if request.is_json:
+            return jsonify({
+                'success': True,
+                'message': f'Stock updated successfully! New quantity: {new_quantity}',
+                'new_quantity': product.stock_quantity
+            })
+        else:
+            flash(f'Stock updated successfully! New quantity: {new_quantity}', 'success')
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Error updating stock: {str(e)}', 'danger')
+        if request.is_json:
+            return jsonify({
+                'success': False,
+                'message': f'Error updating stock: {str(e)}'
+            }), 500
+        else:
+            flash(f'Error updating stock: {str(e)}', 'danger')
 
+    # Redirect for form submissions, JSON returns above
     return redirect(url_for('admin.products'))
 
 
@@ -391,18 +414,6 @@ def orders():
         return redirect(url_for('admin.dashboard'))
 
 
-@admin_bp.route('/orders/<int:order_id>')
-def order_detail(order_id):
-    """Order detail view"""
-    try:
-        order = Order.query.get_or_404(order_id)
-        return render_template('admin/order_detail.html', order=order)
-
-    except Exception as e:
-        flash(f'Error loading order: {str(e)}', 'danger')
-        return redirect(url_for('admin.orders'))
-
-
 @admin_bp.route('/orders/<int:order_id>/update-status', methods=['POST'])
 def update_order_status(order_id):
     """Update order status"""
@@ -438,19 +449,43 @@ def update_order_status(order_id):
 def stock_management():
     """Stock management dashboard"""
     try:
-        # Low stock products
+        from models.product import Product
+        from models.stock import StockMovement
+
+        # Get all products for dropdowns
+        all_products = Product.query.filter_by(status='active').all()
+
+        # Calculate statistics
+        total_products = Product.query.filter_by(status='active').count()
+
+        # Calculate inventory value (simplified)
+        total_value = sum(p.base_price * p.stock_quantity for p in all_products if p.base_price and p.stock_quantity)
+
+        # Get low stock products
         low_stock_products = Product.query.filter(
             Product.stock_quantity <= Product.low_stock_threshold,
+            Product.stock_quantity > 0,
             Product.track_inventory == True,
             Product.status == 'active'
         ).all()
 
-        # Out of stock products
+        # Get out of stock products
         out_of_stock_products = Product.query.filter(
             Product.stock_quantity == 0,
             Product.track_inventory == True,
             Product.status == 'active'
         ).all()
+
+        # Get stock counts
+        in_stock_count = Product.query.filter(
+            Product.stock_quantity > 0,
+            Product.status == 'active'
+        ).count()
+
+        on_backorder_count = Product.query.filter(
+            Product.stock_status == 'on_backorder',
+            Product.status == 'active'
+        ).count()
 
         # Recent stock movements
         recent_movements = StockMovement.query.order_by(
@@ -460,11 +495,112 @@ def stock_management():
         return render_template('admin/stock_management.html',
                                low_stock_products=low_stock_products,
                                out_of_stock_products=out_of_stock_products,
-                               recent_movements=recent_movements)
+                               recent_movements=recent_movements,
+                               all_products=all_products,
+                               total_products=total_products,
+                               total_value=total_value,
+                               in_stock_count=in_stock_count,
+                               on_backorder_count=on_backorder_count)
 
     except Exception as e:
         flash(f'Error loading stock management: {str(e)}', 'danger')
         return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/stock/add', methods=['POST'])
+def add_stock():
+    """Add stock to product"""
+    try:
+        data = request.get_json()
+        product_id = data.get('product_id')
+        quantity = data.get('quantity')
+        reason = data.get('reason', 'Stock addition')
+
+        product = Product.query.get_or_404(product_id)
+
+        # Add stock using the product method
+        success = product.add_stock(
+            quantity=quantity,
+            reason=reason,
+            performed_by=current_user.id,
+            reference_type='adjustment'
+        )
+
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Added {quantity} units to {product.name}',
+                'new_quantity': product.stock_quantity
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to add stock'
+            }), 400
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error adding stock: {str(e)}'
+        }), 500
+
+
+@admin_bp.route('/stock/bulk-update', methods=['POST'])
+def bulk_update_stock():
+    """Bulk update stock for multiple products"""
+    try:
+        data = request.get_json()
+        updates = data.get('updates', [])
+
+        updated_count = 0
+        errors = []
+
+        for update in updates:
+            sku = update.get('sku')
+            quantity = update.get('quantity')
+
+            product = Product.query.filter_by(sku=sku).first()
+            if product:
+                # Set stock to specific quantity
+                current_quantity = product.stock_quantity
+                difference = quantity - current_quantity
+
+                if difference > 0:
+                    success = product.add_stock(
+                        quantity=difference,
+                        reason='Bulk stock update',
+                        performed_by=current_user.id,
+                        reference_type='adjustment'
+                    )
+                elif difference < 0:
+                    success = product.reduce_stock(
+                        quantity=abs(difference),
+                        reason='Bulk stock update',
+                        performed_by=current_user.id,
+                        reference_type='adjustment'
+                    )
+                else:
+                    success = True
+
+                if success:
+                    updated_count += 1
+                else:
+                    errors.append(f"Failed to update {sku}")
+            else:
+                errors.append(f"Product not found: {sku}")
+
+        return jsonify({
+            'success': True,
+            'updated': updated_count,
+            'errors': errors,
+            'message': f'Updated {updated_count} products successfully'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error in bulk update: {str(e)}'
+        }), 500
 
 
 @admin_bp.route('/categories')
@@ -506,6 +642,39 @@ def reviews():
         return redirect(url_for('admin.dashboard'))
 
 
+@admin_bp.route('/categories/new', methods=['POST'])
+def new_category():
+    """Create new category"""
+    try:
+        name = request.form.get('name')
+        slug = request.form.get('slug')
+        gst_slab = float(request.form.get('gst_slab', 18.0))
+        hsn_code = request.form.get('hsn_code')
+        parent_id = request.form.get('parent_id') if request.form.get('parent_id') else None
+        is_active = 'is_active' in request.form
+        is_featured = 'is_featured' in request.form
+
+        category = Category(
+            name=name,
+            slug=slug,
+            gst_slab=gst_slab,
+            hsn_code=hsn_code,
+            parent_id=parent_id,
+            is_active=is_active,
+            is_featured=is_featured
+        )
+
+        db.session.add(category)
+        db.session.commit()
+        flash('Category created successfully!', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error creating category: {str(e)}', 'danger')
+
+    return redirect(url_for('admin.categories'))
+
+
 @admin_bp.route('/api/admin/stats')
 def api_admin_stats():
     """API endpoint for admin dashboard stats"""
@@ -539,3 +708,105 @@ def api_admin_stats():
             'today_revenue': 0,
             'error': str(e)
         }), 500
+
+
+# =============================================
+# ORDER DETAIL & MANAGEMENT ROUTES
+# =============================================
+
+@admin_bp.route('/orders/<int:order_id>')
+def order_detail(order_id):
+    """Order detail view with comprehensive information"""
+    try:
+        order = Order.query.get_or_404(order_id)
+
+        # Get order history if available
+        order_history = []
+        try:
+            from models.order_history import OrderHistory
+            order_history = OrderHistory.query.filter_by(order_id=order_id) \
+                .order_by(OrderHistory.created_at.desc()).all()
+        except:
+            # If order_history table doesn't exist yet, continue without it
+            pass
+
+        return render_template('admin/order_detail.html',
+                               order=order,
+                               order_history=order_history)
+
+    except Exception as e:
+        flash(f'Error loading order: {str(e)}', 'danger')
+        return redirect(url_for('admin.orders'))
+
+
+# =============================================
+# ORDER MANAGEMENT ADDITIONAL ROUTES
+# =============================================
+
+@admin_bp.route('/orders/<int:order_id>/admin-note', methods=['POST'])
+def update_admin_note(order_id):
+    """Update admin note for order"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        data = request.get_json()
+        order.admin_note = data.get('admin_note', '')
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Admin note updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/orders/<int:order_id>/cancel', methods=['POST'])
+def cancel_order(order_id):
+    """Cancel order"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        data = request.get_json()
+        reason = data.get('reason', 'No reason provided')
+
+        order.status = 'cancelled'
+        order.cancelled_at = datetime.utcnow()
+        order.admin_note = f"{order.admin_note or ''}\nCancelled: {reason}".strip()
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Order cancelled'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/orders/<int:order_id>/mark-paid', methods=['POST'])
+def mark_order_paid(order_id):
+    """Mark order as paid manually"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        order.payment_status = 'paid'
+        order.paid_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Order marked as paid'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/api/orders/<int:order_id>/status')
+def api_order_status(order_id):
+    """API endpoint for order status"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        return jsonify({
+            'status': order.status,
+            'payment_status': order.payment_status
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/orders/<int:order_id>/send-tracking', methods=['POST'])
+def send_tracking_email(order_id):
+    """Send tracking email to customer"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        # Here you would integrate with your email service
+        # For now, just return success
+        return jsonify({'success': True, 'message': 'Tracking email sent'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

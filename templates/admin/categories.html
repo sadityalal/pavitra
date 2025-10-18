@@ -1,0 +1,429 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Category Management - Pavitra Enterprises{% endblock %}
+
+{% block page_title %}Category Management{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+<li class="breadcrumb-item active">Categories</li>
+{% endblock %}
+
+{% block content %}
+<!-- Categories Management Section -->
+<section class="section">
+  <div class="container-fluid">
+
+    <!-- Header with Stats and Actions -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h5 class="text-heading-color mb-3">
+          <i class="bi bi-tags me-2"></i>Product Categories
+        </h5>
+        <p class="text-muted mb-0">Manage your product categories and organize your catalog efficiently.</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+          <i class="bi bi-plus-circle me-2"></i>Add New Category
+        </button>
+      </div>
+    </div>
+
+    <!-- Categories Statistics -->
+    <div class="row mb-4">
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card card" data-aos="fade-up">
+          <div class="card-body">
+            <div class="stats-icon text-primary">
+              <i class="bi bi-tags"></i>
+            </div>
+            <div class="stats-content">
+              <h3>{{ categories|length }}</h3>
+              <p>Total Categories</p>
+              <span class="stats-trend text-success">
+                <i class="bi bi-collection"></i> Active catalog
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card card" data-aos="fade-up" data-aos-delay="100">
+          <div class="card-body">
+            <div class="stats-icon text-success">
+              <i class="bi bi-star"></i>
+            </div>
+            <div class="stats-content">
+              <h3>{{ categories|selectattr('is_featured')|list|length }}</h3>
+              <p>Featured Categories</p>
+              <span class="stats-trend text-primary">
+                <i class="bi bi-lightning"></i> Promoted
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card card" data-aos="fade-up" data-aos-delay="200">
+          <div class="card-body">
+            <div class="stats-icon text-info">
+              <i class="bi bi-diagram-3"></i>
+            </div>
+            <div class="stats-content">
+              <h3>{{ categories|selectattr('parent_id')|list|length }}</h3>
+              <p>Subcategories</p>
+              <span class="stats-trend text-info">
+                <i class="bi bi-arrow-branch"></i> Hierarchical
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card card" data-aos="fade-up" data-aos-delay="300">
+          <div class="card-body">
+            <div class="stats-icon text-warning">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="stats-content">
+              <h3>{{ total_products }}</h3>
+              <p>Total Products</p>
+              <span class="stats-trend text-warning">
+                <i class="bi bi-graph-up"></i> Across categories
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card" data-aos="fade-up">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title mb-0">
+          <i class="bi bi-list-ul me-2"></i>All Categories
+        </h6>
+        <div class="d-flex gap-2">
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text" class="form-control" placeholder="Search categories..." id="categorySearch">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" id="refreshCategories">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if categories %}
+        <div class="table-responsive">
+          <table class="table table-hover" id="categoriesTable">
+            <thead>
+              <tr>
+                <th width="50">#</th>
+                <th>Category</th>
+                <th>Products</th>
+                <th>GST Rate</th>
+                <th>Status</th>
+                <th>Featured</th>
+                <th>Created</th>
+                <th width="120">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+              <tr data-category-id="{{ category.id }}" class="category-row">
+                <td>
+                  <div class="form-check">
+                    <input class="form-check-input category-checkbox" type="checkbox" value="{{ category.id }}">
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    {% if category.image_url %}
+                    <img src="{{ category.image_url }}" alt="{{ category.name }}"
+                         class="rounded me-3" width="40" height="40" style="object-fit: cover;">
+                    {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
+                         style="width: 40px; height: 40px;">
+                      <i class="bi bi-folder text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                      <h6 class="mb-1">{{ category.name }}</h6>
+                      <small class="text-muted">
+                        {% if category.parent %}
+                        <i class="bi bi-arrow-return-right me-1"></i>Subcategory of {{ category.parent.name }}
+                        {% else %}
+                        <i class="bi bi-house me-1"></i>Main Category
+                        {% endif %}
+                        {% if category.name_hindi %}
+                        <br><span class="text-info">({{ category.name_hindi }})</span>
+                        {% endif %}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-primary rounded-pill">{{ category.get_product_count() }}</span>
+                </td>
+                <td>
+                  <span class="badge bg-success">{{ category.gst_slab }}%</span>
+                  {% if category.hsn_code %}
+                  <br><small class="text-muted">{{ category.hsn_code }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge {% if category.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if category.is_active %}Active{% else %}Inactive{% endif %}
+                  </span>
+                </td>
+                <td>
+                  {% if category.is_featured %}
+                  <i class="bi bi-star-fill text-warning" title="Featured"></i>
+                  {% else %}
+                  <i class="bi bi-star text-muted" title="Not Featured"></i>
+                  {% endif %}
+                </td>
+                <td>
+                  <small class="text-muted">{{ category.created_at.strftime('%d %b %Y') }}</small>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-primary edit-category"
+                            data-category-id="{{ category.id }}"
+                            title="Edit Category">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-info view-category"
+                            data-category-id="{{ category.id }}"
+                            title="View Products">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    {% if category.is_active %}
+                    <button class="btn btn-outline-warning toggle-category"
+                            data-category-id="{{ category.id }}"
+                            data-action="deactivate"
+                            title="Deactivate">
+                      <i class="bi bi-pause"></i>
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-success toggle-category"
+                            data-category-id="{{ category.id }}"
+                            data-action="activate"
+                            title="Activate">
+                      <i class="bi bi-play"></i>
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-outline-danger delete-category"
+                            data-category-id="{{ category.id }}"
+                            title="Delete Category">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <select class="form-select form-select-sm" style="width: auto;" id="bulkAction">
+                <option value="">Bulk Actions</option>
+                <option value="activate">Activate Selected</option>
+                <option value="deactivate">Deactivate Selected</option>
+                <option value="feature">Mark as Featured</option>
+                <option value="unfeature">Remove Featured</option>
+                <option value="delete">Delete Selected</option>
+              </select>
+              <button class="btn btn-sm btn-outline-primary" id="applyBulkAction">Apply</button>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <small class="text-muted">{{ categories|length }} categories found</small>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-tags display-4 text-muted"></i>
+          <h5 class="text-muted mt-3">No Categories Found</h5>
+          <p class="text-muted">Get started by creating your first product category.</p>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+            <i class="bi bi-plus-circle me-2"></i>Create First Category
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCategoryModalLabel">
+          <i class="bi bi-plus-circle me-2"></i>Add New Category
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="addCategoryForm" method="POST" action="{{ url_for('admin.new_category') }}">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="categoryName" class="form-label">Category Name *</label>
+              <input type="text" class="form-control" id="categoryName" name="name" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="categoryNameHindi" class="form-label">Hindi Name</label>
+              <input type="text" class="form-control" id="categoryNameHindi" name="name_hindi">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="parentCategory" class="form-label">Parent Category</label>
+              <select class="form-select" id="parentCategory" name="parent_id">
+                <option value="">No Parent (Main Category)</option>
+                {% for cat in categories %}
+                  {% if not cat.parent_id %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="categorySlug" class="form-label">URL Slug *</label>
+              <input type="text" class="form-control" id="categorySlug" name="slug" required>
+              <div class="form-text">URL-friendly version of the name</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="categoryDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="gstSlab" class="form-label">GST Rate (%) *</label>
+              <input type="number" step="0.01" class="form-control" id="gstSlab" name="gst_slab" value="18.00" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="hsnCode" class="form-label">HSN Code</label>
+              <input type="text" class="form-control" id="hsnCode" name="hsn_code">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="sortOrder" class="form-label">Sort Order</label>
+              <input type="number" class="form-control" id="sortOrder" name="sort_order" value="0">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
+                <label class="form-check-label" for="isActive">Active Category</label>
+              </div>
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="isFeatured" name="is_featured">
+                <label class="form-check-label" for="isFeatured">Featured Category</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="alert alert-info">
+                <h6 class="alert-heading mb-2">GST Information</h6>
+                <small>
+                  Set the default GST rate for products in this category.<br>
+                  Common rates: 0%, 5%, 12%, 18%, 28%
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Create Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCategoryModalLabel">
+          <i class="bi bi-pencil me-2"></i>Edit Category
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editCategoryForm" method="POST">
+        <div class="modal-body">
+          <!-- Content will be loaded via JavaScript -->
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading category details...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-2"></i>Update Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger" id="deleteCategoryModalLabel">
+          <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this category?</p>
+        <div class="alert alert-warning">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Warning:</strong> This action cannot be undone. Products in this category will be affected.
+        </div>
+        <p class="mb-0" id="deleteCategoryInfo"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteCategory">
+          <i class="bi bi-trash me-2"></i>Delete Category
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Categories Management JavaScript -->
+<script src="{{ url_for('static', filename='js/admin_categories.js') }}"></script>
+{% endblock %}
