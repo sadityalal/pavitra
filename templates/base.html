@@ -7,6 +7,8 @@
   <title>{% block title %}Pavitra Enterprises - Premium Shopping Experience{% endblock %}</title>
   <meta name="description" content="{% block description %}Pavitra Enterprises - Your trusted destination for quality products at great prices. Shop electronics, clothing, home goods and more.{% endblock %}">
   <meta name="keywords" content="{% block keywords %}shopping, ecommerce, electronics, clothing, home goods, pavitra enterprises{% endblock %}">
+    <!-- FIXED: Use csrf_token() instead of csrf_token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Favicons -->
   <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
@@ -27,6 +29,24 @@
 
   <!-- Main CSS File -->
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+
+  <!-- Fixed CSS Variables -->
+  <style>
+    :root {
+      --default-font: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --heading-font: "Montserrat", sans-serif;
+      --nav-font: "Poppins", sans-serif;
+
+      --background-color: #ffffff;
+      --default-color: #444444;
+      --heading-color: #000000;
+      --accent-color: #252223;
+      --surface-color: #ffffff;
+      --contrast-color: #ffffff;
+      --primary-color: #0ea5e9;
+      --secondary-color: #64748b;
+    }
+  </style>
 
   <!-- =======================================================
   * Template Name: NiceShop
@@ -67,8 +87,8 @@
                 }
               </script>
               <div class="swiper-wrapper">
-                <div class="swiper-slide">🚚 Free shipping on orders over $50</div>
-                <div class="swiper-slide">💰 30 days money back guarantee.</div>
+                <div class="swiper-slide">🚚 Free shipping on orders over {{ currency_symbol }}{{ site_settings.get('free_shipping_threshold', '999') }}</div>
+                <div class="swiper-slide">💰 {{ site_settings.get('return_period_days', '10') }}-day money back guarantee</div>
                 <div class="swiper-slide">🎁 20% off on your first order</div>
               </div>
             </div>
@@ -82,19 +102,15 @@
                 </a>
                 <ul class="dropdown-menu">
                   <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2 selected-icon"></i>English</a></li>
-                  <li><a class="dropdown-item" href="#">Español</a></li>
-                  <li><a class="dropdown-item" href="#">Français</a></li>
-                  <li><a class="dropdown-item" href="#">Deutsch</a></li>
+                  <li><a class="dropdown-item" href="#">Hindi</a></li>
                 </ul>
               </div>
               <div class="top-bar-item dropdown">
                 <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                  <i class="bi bi-currency-dollar me-2"></i>USD
+                  <i class="bi bi-currency-rupee me-2"></i>INR
                 </a>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2 selected-icon"></i>USD</a></li>
-                  <li><a class="dropdown-item" href="#">EUR</a></li>
-                  <li><a class="dropdown-item" href="#">GBP</a></li>
+                  <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2 selected-icon"></i>INR</a></li>
                 </ul>
               </div>
             </div>
@@ -109,9 +125,7 @@
         <div class="d-flex py-3 align-items-center justify-content-between">
 
           <!-- Logo -->
-          <a href="{{ url_for('shop.index') }}" class="logo d-flex align-items-center">
-            <!-- Uncomment the line below if you also wish to use an image logo -->
-            <!-- <img src="{{ url_for('static', filename='img/logo.webp') }}" alt=""> -->
+          <a href="{{ url_for('shop.index') }}" class="logo d-flex align-items-center text-decoration-none">
             <h1 class="sitename">Pavitra Enterprises</h1>
           </a>
 
@@ -138,18 +152,18 @@
               <button class="header-action-btn" data-bs-toggle="dropdown">
                 <i class="bi bi-person"></i>
               </button>
-              <div class="dropdown-menu">
+              <div class="dropdown-menu dropdown-menu-end">
                 {% if current_user.is_authenticated %}
                 <div class="dropdown-header">
-                  <h6>Welcome, <span class="text-primary">{{ current_user.name }}</span></h6>
-                  <p class="mb-0">Access account &amp; manage orders</p>
+                  <h6>Welcome, <span class="text-primary">{{ current_user.first_name or current_user.email.split('@')[0] }}</span></h6>
+                  <p class="mb-0">Access account & manage orders</p>
                 </div>
                 <div class="dropdown-body">
                   <a class="dropdown-item d-flex align-items-center" href="{{ url_for('shop.account') }}">
                     <i class="bi bi-person-circle me-2"></i>
                     <span>My Profile</span>
                   </a>
-                  <a class="dropdown-item d-flex align-items-center" href="{{ url_for('shop.account') }}">
+                  <a class="dropdown-item d-flex align-items-center" href="{{ url_for('shop.orders') }}">
                     <i class="bi bi-bag-check me-2"></i>
                     <span>My Orders</span>
                   </a>
@@ -157,24 +171,29 @@
                     <i class="bi bi-heart me-2"></i>
                     <span>My Wishlist</span>
                   </a>
+                  <a class="dropdown-item d-flex align-items-center" href="{{ url_for('shop.addresses') }}">
+                    <i class="bi bi-geo-alt me-2"></i>
+                    <span>My Addresses</span>
+                  </a>
                   {% if current_user.is_admin %}
-                  <a class="dropdown-item d-flex align-items-center" href="{{ url_for('admin.dashboard') }}">
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item text-warning d-flex align-items-center" href="{{ url_for('admin.dashboard') }}">
                     <i class="bi bi-speedometer2 me-2"></i>
                     <span>Admin Panel</span>
                   </a>
                   {% endif %}
                 </div>
                 <div class="dropdown-footer">
-                  <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary w-100">Logout</a>
+                  <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary w-100 btn-sm">Logout</a>
                 </div>
                 {% else %}
                 <div class="dropdown-header">
-                  <h6>Welcome to <span class="sitename">Pavitra Enterprises</span></h6>
-                  <p class="mb-0">Access account &amp; manage orders</p>
+                  <h6>Welcome to <span class="text-primary">Pavitra Enterprises</span></h6>
+                  <p class="mb-0">Access account & manage orders</p>
                 </div>
                 <div class="dropdown-footer">
-                  <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100 mb-2">Sign In</a>
-                  <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-100">Register</a>
+                  <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100 mb-2 btn-sm">Sign In</a>
+                  <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-100 btn-sm">Register</a>
                 </div>
                 {% endif %}
               </div>
@@ -183,21 +202,13 @@
             <!-- Wishlist -->
             <a href="{{ url_for('shop.wishlist') }}" class="header-action-btn d-none d-md-block position-relative">
               <i class="bi bi-heart"></i>
-              <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlist-count">
-                {% if current_user.is_authenticated %}{{ current_user.wishlists|length if current_user.wishlists else 0 }}{% else %}0{% endif %}
-              </span>
+              <span class="badge" id="wishlist-count">{{ wishlist_count|default(0) }}</span>
             </a>
 
             <!-- Cart -->
             <a href="{{ url_for('shop.cart') }}" class="header-action-btn position-relative">
               <i class="bi bi-cart3"></i>
-              <span class="badge bg-primary position-absolute top-0 start-100 translate-middle" id="cart-count">
-                {% set cart_total = namespace(count=0) %}
-                {% for item in session.get('cart', []) %}
-                  {% set cart_total.count = cart_total.count + item.quantity %}
-                {% endfor %}
-                {{ cart_total.count }}
-              </span>
+              <span class="badge" id="cart-count">{{ cart_count|default(0) }}</span>
             </a>
 
             <!-- Mobile Navigation Toggle -->
@@ -220,139 +231,139 @@
             <li class="products-megamenu-1">
               <a href="#"><span>Shop</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
 
-            <!-- Mobile View -->
-            <ul class="mobile-megamenu">
-              <li><a href="{{ url_for('shop.category') }}">All Products</a></li>
-              <li><a href="{{ url_for('shop.search') }}?q=featured">Featured Products</a></li>
-              <li><a href="{{ url_for('shop.search') }}?q=new">New Arrivals</a></li>
-              <li><a href="{{ url_for('shop.search') }}?q=sale">On Sale</a></li>
+              <!-- Mobile View -->
+              <ul class="mobile-megamenu">
+                <li><a href="{{ url_for('shop.products') }}">All Products</a></li>
+                <li><a href="{{ url_for('shop.products', featured=True) }}">Featured Products</a></li>
+                <li><a href="{{ url_for('shop.products', new_arrivals=True) }}">New Arrivals</a></li>
+                <li><a href="{{ url_for('shop.products', on_sale=True) }}">On Sale</a></li>
 
-              {% if categories %}
-                {% for category in categories %}
-                <li class="dropdown">
-                  <a href="{{ url_for('shop.category', slug=category.slug) }}">
-                    <span>{{ category.name }}</span> <i class="bi bi-chevron-down toggle-dropdown"></i>
-                  </a>
-                  <ul>
-                    {% if category.products %}
-                      {% for product in category.products[:5] %}
-                      <li><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></li>
-                      {% endfor %}
-                    {% endif %}
-                    <li><a href="{{ url_for('shop.category', slug=category.slug) }}">View All {{ category.name }}</a></li>
-                  </ul>
-                </li>
-                {% endfor %}
-              {% endif %}
-            </ul>
+                {% if categories %}
+                  {% for category in categories %}
+                  <li class="dropdown">
+                    <a href="{{ url_for('shop.category', slug=category.slug) }}">
+                      <span>{{ category.name }}</span> <i class="bi bi-chevron-down toggle-dropdown"></i>
+                    </a>
+                    <ul>
+                      {% if category.products %}
+                        {% for product in category.products[:5] %}
+                        <li><a href="{{ url_for('shop.product_detail', slug=product.slug) }}">{{ product.name }}</a></li>
+                        {% endfor %}
+                      {% endif %}
+                      <li><a href="{{ url_for('shop.category', slug=category.slug) }}">View All {{ category.name }}</a></li>
+                    </ul>
+                  </li>
+                  {% endfor %}
+                {% endif %}
+              </ul>
 
               <!-- Desktop View -->
-            <div class="desktop-megamenu">
-              <div class="megamenu-tabs">
-                <ul class="nav nav-tabs" id="productMegaMenuTabs" role="tablist">
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured-content" type="button" aria-selected="true" role="tab">Featured</button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-content" type="button" aria-selected="false" tabindex="-1" role="tab">New Arrivals</button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-content" type="button" aria-selected="false" tabindex="-1" role="tab">Categories</button>
-                  </li>
-                </ul>
-              </div>
+              <div class="desktop-megamenu">
+                <div class="megamenu-tabs">
+                  <ul class="nav nav-tabs" id="productMegaMenuTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" id="featured-tab" data-bs-toggle="tab" data-bs-target="#featured-content" type="button" aria-selected="true" role="tab">Featured</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-content" type="button" aria-selected="false" tabindex="-1" role="tab">New Arrivals</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-content" type="button" aria-selected="false" tabindex="-1" role="tab">Categories</button>
+                    </li>
+                  </ul>
+                </div>
 
-              <!-- Tabs Content -->
-              <div class="megamenu-content tab-content">
-                <!-- Featured Tab -->
-                <div class="tab-pane fade show active" id="featured-content" role="tabpanel" aria-labelledby="featured-tab">
-                  <div class="product-grid">
-                    {% if featured_products %}
-                      {% for product in featured_products[:4] %}
-                      <div class="product-card">
-                        <div class="product-image">
-                          <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" loading="lazy">
-                          {% if product.compare_price and product.compare_price > product.price %}
-                          <span class="badge-sale">-{{ ((product.compare_price - product.price) / product.compare_price * 100)|round|int }}%</span>
-                          {% endif %}
-                        </div>
-                        <div class="product-info">
-                          <h5><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></h5>
-                          <p class="price">
-                            {% if product.compare_price and product.compare_price > product.price %}
-                            <span class="original-price">${{ "%.2f"|format(product.compare_price) }}</span>
+                <!-- Tabs Content -->
+                <div class="megamenu-content tab-content">
+                  <!-- Featured Tab -->
+                  <div class="tab-pane fade show active" id="featured-content" role="tabpanel" aria-labelledby="featured-tab">
+                    <div class="product-grid">
+                      {% if featured_products %}
+                        {% for product in featured_products[:4] %}
+                        <div class="product-card">
+                          <div class="product-image">
+                            <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" loading="lazy">
+                            {% if product.compare_price and product.compare_price > product.base_price %}
+                            <span class="badge-sale">-{{ ((product.compare_price - product.base_price) / product.compare_price * 100)|round|int }}%</span>
                             {% endif %}
-                            ${{ "%.2f"|format(product.price) }}
-                          </p>
-                          <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="btn-view">View Product</a>
+                          </div>
+                          <div class="product-info">
+                            <h5><a href="{{ url_for('shop.product_detail', slug=product.slug) }}">{{ product.name }}</a></h5>
+                            <p class="price">
+                              {% if product.compare_price and product.compare_price > product.base_price %}
+                              <span class="original-price">{{ currency_symbol }}{{ "%.2f"|format(product.compare_price) }}</span>
+                              {% endif %}
+                              {{ currency_symbol }}{{ "%.2f"|format(product.base_price) }}
+                            </p>
+                            <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" class="btn-view">View Product</a>
+                          </div>
                         </div>
-                      </div>
-                      {% endfor %}
-                    {% else %}
-                      <div class="text-center py-4 w-100">
-                        <p class="text-muted">No featured products available</p>
-                        <a href="{{ url_for('shop.category') }}" class="btn btn-sm btn-outline-primary">Browse All Products</a>
-                      </div>
-                    {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        <div class="text-center py-4 w-100">
+                          <p class="text-muted">No featured products available</p>
+                          <a href="{{ url_for('shop.products') }}" class="btn btn-sm btn-outline-primary">Browse All Products</a>
+                        </div>
+                      {% endif %}
+                    </div>
                   </div>
-                </div>
 
-                <!-- New Arrivals Tab -->
-                <div class="tab-pane fade" id="new-content" role="tabpanel" aria-labelledby="new-tab">
-                  <div class="product-grid">
-                    {% if new_arrivals %}
-                      {% for product in new_arrivals[:4] %}
-                      <div class="product-card">
-                        <div class="product-image">
-                          <img src="{{ product.image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" loading="lazy">
-                          <span class="badge-new">New</span>
+                  <!-- New Arrivals Tab -->
+                  <div class="tab-pane fade" id="new-content" role="tabpanel" aria-labelledby="new-tab">
+                    <div class="product-grid">
+                      {% if new_arrivals %}
+                        {% for product in new_arrivals[:4] %}
+                        <div class="product-card">
+                          <div class="product-image">
+                            <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}" alt="{{ product.name }}" loading="lazy">
+                            <span class="badge-new">New</span>
+                          </div>
+                          <div class="product-info">
+                            <h5><a href="{{ url_for('shop.product_detail', slug=product.slug) }}">{{ product.name }}</a></h5>
+                            <p class="price">{{ currency_symbol }}{{ "%.2f"|format(product.base_price) }}</p>
+                            <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" class="btn-view">View Product</a>
+                          </div>
                         </div>
-                        <div class="product-info">
-                          <h5><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></h5>
-                          <p class="price">${{ "%.2f"|format(product.price) }}</p>
-                          <a href="{{ url_for('shop.product_details', slug=product.slug) }}" class="btn-view">View Product</a>
+                        {% endfor %}
+                      {% else %}
+                        <div class="text-center py-4 w-100">
+                          <p class="text-muted">No new arrivals available</p>
+                          <a href="{{ url_for('shop.products') }}" class="btn btn-sm btn-outline-primary">Browse All Products</a>
                         </div>
-                      </div>
-                      {% endfor %}
-                    {% else %}
-                      <div class="text-center py-4 w-100">
-                        <p class="text-muted">No new arrivals available</p>
-                        <a href="{{ url_for('shop.category') }}" class="btn btn-sm btn-outline-primary">Browse All Products</a>
-                      </div>
-                    {% endif %}
+                      {% endif %}
+                    </div>
                   </div>
-                </div>
 
-                <!-- Categories Tab -->
-                <div class="tab-pane fade" id="categories-content" role="tabpanel" aria-labelledby="categories-tab">
-                  <div class="category-grid">
-                    {% if categories %}
-                      {% for category in categories %}
-                      <div class="category-column">
-                        <h4><a href="{{ url_for('shop.category', slug=category.slug) }}">{{ category.name }}</a></h4>
-                        <ul>
-                          {% if category.products %}
-                            {% for product in category.products[:5] %}
-                            <li><a href="{{ url_for('shop.product_details', slug=product.slug) }}">{{ product.name }}</a></li>
-                            {% endfor %}
-                          {% else %}
-                            <li><span class="text-muted">No products available</span></li>
-                          {% endif %}
-                          <li><a href="{{ url_for('shop.category', slug=category.slug) }}" class="view-all">View all {{ category.name }}</a></li>
-                        </ul>
-                      </div>
-                      {% endfor %}
-                    {% else %}
-                      <div class="text-center py-4 w-100">
-                        <p class="text-muted">No categories available</p>
-                      </div>
-                    {% endif %}
+                  <!-- Categories Tab -->
+                  <div class="tab-pane fade" id="categories-content" role="tabpanel" aria-labelledby="categories-tab">
+                    <div class="category-grid">
+                      {% if categories %}
+                        {% for category in categories %}
+                        <div class="category-column">
+                          <h4><a href="{{ url_for('shop.category', slug=category.slug) }}">{{ category.name }}</a></h4>
+                          <ul>
+                            {% if category.products %}
+                              {% for product in category.products[:5] %}
+                              <li><a href="{{ url_for('shop.product_detail', slug=product.slug) }}">{{ product.name }}</a></li>
+                              {% endfor %}
+                            {% else %}
+                              <li><span class="text-muted">No products available</span></li>
+                            {% endif %}
+                            <li><a href="{{ url_for('shop.category', slug=category.slug) }}" class="view-all">View all {{ category.name }}</a></li>
+                          </ul>
+                        </div>
+                        {% endfor %}
+                      {% else %}
+                        <div class="text-center py-4 w-100">
+                          <p class="text-muted">No categories available</p>
+                        </div>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </li>
 
-            <li><a href="{{ url_for('shop.cart') }}" class="{% if request.endpoint == 'shop.cart' %}active{% endif %}">Cart</a></li>
             <li><a href="{{ url_for('shop.contact') }}" class="{% if request.endpoint == 'shop.contact' %}active{% endif %}">Contact</a></li>
 
             {% if current_user.is_authenticated and current_user.is_admin %}
@@ -405,7 +416,7 @@
         <div class="row gy-4">
           <div class="col-lg-4 col-md-6">
             <div class="footer-widget footer-about">
-              <a href="{{ url_for('shop.index') }}" class="logo">
+              <a href="{{ url_for('shop.index') }}" class="logo text-decoration-none">
                 <span class="sitename">Pavitra Enterprises</span>
               </a>
               <p>Your trusted destination for quality products at great prices. We offer a wide range of electronics, clothing, home goods and more with excellent customer service.</p>
@@ -416,8 +427,6 @@
                   <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                   <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
                   <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-                  <a href="#" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
-                  <a href="#" aria-label="Pinterest"><i class="bi bi-pinterest"></i></a>
                   <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
                 </div>
               </div>
@@ -428,12 +437,11 @@
             <div class="footer-widget">
               <h4>Shop</h4>
               <ul class="footer-links">
-                <li><a href="{{ url_for('shop.search') }}?q=new">New Arrivals</a></li>
-                <li><a href="{{ url_for('shop.search') }}?q=featured">Bestsellers</a></li>
-                <li><a href="{{ url_for('shop.category') }}">All Products</a></li>
-                <li><a href="{{ url_for('shop.search') }}?q=sale">Sale</a></li>
-                <li><a href="{{ url_for('shop.search') }}?q=electronics">Electronics</a></li>
-                <li><a href="{{ url_for('shop.search') }}?q=clothing">Clothing</a></li>
+                <li><a href="{{ url_for('shop.products', new_arrivals=True) }}">New Arrivals</a></li>
+                <li><a href="{{ url_for('shop.products', featured=True) }}">Bestsellers</a></li>
+                <li><a href="{{ url_for('shop.products') }}">All Products</a></li>
+                <li><a href="{{ url_for('shop.products', on_sale=True) }}">Sale</a></li>
+                <li><a href="{{ url_for('shop.products', featured=True) }}">Featured</a></li>
               </ul>
             </div>
           </div>
@@ -442,8 +450,8 @@
             <div class="footer-widget">
               <h4>Support</h4>
               <ul class="footer-links">
-                <li><a href="{{ url_for('shop.support') }}">Help Center</a></li>
-                <li><a href="{{ url_for('shop.account') }}">Order Status</a></li>
+                <li><a href="{{ url_for('shop.contact') }}">Help Center</a></li>
+                <li><a href="{{ url_for('shop.orders') }}">Order Status</a></li>
                 <li><a href="{{ url_for('shop.shipping_info') }}">Shipping Info</a></li>
                 <li><a href="{{ url_for('shop.return_policy') }}">Returns &amp; Exchanges</a></li>
                 <li><a href="{{ url_for('shop.faq') }}">FAQs</a></li>
@@ -457,12 +465,8 @@
               <h4>Contact Information</h4>
               <div class="footer-contact">
                 <div class="contact-item">
-                  <i class="bi bi-geo-alt"></i>
-                  <span>Bekkamo 19, 22045 Hamburg</span>
-                </div>
-                <div class="contact-item">
                   <i class="bi bi-telephone"></i>
-                  <span>+91 9711317009</span>
+                  <span>+91-9711317009</span>
                 </div>
                 <div class="contact-item">
                   <i class="bi bi-envelope"></i>
@@ -472,17 +476,12 @@
                   <i class="bi bi-clock"></i>
                   <span>Monday-Friday: 9am-6pm<br>Saturday: 10am-4pm<br>Sunday: Closed</span>
                 </div>
-              </div>
-
-              <div class="app-buttons mt-4">
-                <a href="#" class="app-btn">
-                  <i class="bi bi-apple"></i>
-                  <span>App Store</span>
-                </a>
-                <a href="#" class="app-btn">
-                  <i class="bi bi-google-play"></i>
-                  <span>Google Play</span>
-                </a>
+                {% if site_settings.get('gst_number') %}
+                <div class="contact-item">
+                  <i class="bi bi-building"></i>
+                  <span>GST: {{ site_settings.get('gst_number') }}</span>
+                </div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -497,9 +496,6 @@
             <div class="copyright">
               <p>© <span>Copyright</span> <strong class="sitename">Pavitra Enterprises</strong>. All Rights Reserved.</p>
             </div>
-            <div class="credits mt-1">
-              Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-            </div>
           </div>
 
           <div class="col-lg-6 col-md-12">
@@ -507,18 +503,15 @@
               <div class="payment-methods">
                 <div class="payment-icons">
                   <i class="bi bi-credit-card" aria-label="Credit Card"></i>
-                  <i class="bi bi-paypal" aria-label="PayPal"></i>
-                  <i class="bi bi-apple" aria-label="Apple Pay"></i>
-                  <i class="bi bi-google" aria-label="Google Pay"></i>
-                  <i class="bi bi-shop" aria-label="Shop Pay"></i>
                   <i class="bi bi-cash" aria-label="Cash on Delivery"></i>
+                  <i class="bi bi-bank" aria-label="Net Banking"></i>
                 </div>
               </div>
 
               <div class="legal-links">
                 <a href="{{ url_for('shop.tos') }}">Terms</a>
                 <a href="{{ url_for('shop.privacy') }}">Privacy</a>
-                <a href="{{ url_for('shop.tos') }}">Cookies</a>
+                <a href="{{ url_for('shop.return_policy') }}">Returns</a>
               </div>
             </div>
           </div>
@@ -533,53 +526,26 @@
   <!-- Preloader -->
   <div id="preloader"></div>
 
-  <!-- Vendor JS Files -->
+    <!-- Vendor JS Files -->
   <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/php-email-form/validate.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/drift-zoom/Drift.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/purecounter/purecounter_vanilla.js') }}"></script>
+
+  <!-- Main JS File -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-  <!-- Dynamic Cart/Wishlist Count Updates -->
-  <script>
-    // Function to update cart count
-    function updateCartCount() {
-      fetch("{{ url_for('shop.api_cart_count') }}")
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('cart-count').textContent = data.count;
-        })
-        .catch(error => console.error('Error updating cart count:', error));
-    }
-
-    // Function to update wishlist count
-    function updateWishlistCount() {
-      fetch("{{ url_for('shop.api_wishlist_count') }}")
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('wishlist-count').textContent = data.count;
-        })
-        .catch(error => console.error('Error updating wishlist count:', error));
-    }
-
-    // Update counts when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      updateCartCount();
-      {% if current_user.is_authenticated %}
-      updateWishlistCount();
-      {% endif %}
-    });
-
-    // You can call these functions after adding/removing items from cart/wishlist
-  </script>
+  <!-- Custom JS Files -->
+  <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/addtocart.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/session.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/init.js') }}"></script>
 
   {% block scripts %}
-  <!-- Additional scripts from child templates will go here -->
+  <!-- Additional scripts from child templates -->
   {% endblock %}
 
 </body>
-
 </html>

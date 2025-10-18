@@ -1,669 +1,713 @@
-from flask import Blueprint, render_template, session, redirect, url_for, request, flash, jsonify
-from models.user import User
+# routes/shop_routes.py
+from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for, flash
+from flask_login import current_user, login_required, logout_user
 from models.product import Product
 from models.category import Category
 from models.review import Review
-from models.order import Order, OrderItem
+from models.brand import Brand
+from models.cart import ShoppingCart
 from models.wishlist import Wishlist
-from models.coupon import Coupon
+from models.order import Order
+from models.user import User
+from models.address import UserAddress
 from extension import db
-from sqlalchemy import or_, and_
 
 shop_bp = Blueprint('shop', __name__)
 
 
-def current_user():
-    """Get current user from session"""
-    uid = session.get('user_id')
-    if not uid:
-        return None
-    return User.query.get(uid)
-
-
-def get_cart_total():
-    """Calculate cart total"""
-    cart = session.get('cart', [])
-    return sum(item['price'] * item['quantity'] for item in cart)
-
-
 @shop_bp.route('/')
 def index():
-    try:
-        # Get featured products
-        featured_products = Product.query.filter_by(
-            is_featured=True,
-            is_active=True
-        ).limit(8).all()
+    """Homepage"""
+    # Featured products
+    featured_products = Product.query.filter_by(
+        is_featured=True,
+        status='active'
+    ).limit(8).all()
 
-        # Get new arrivals (latest products)
-        new_arrivals = Product.query.filter_by(
-            is_active=True
-        ).order_by(Product.created_at.desc()).limit(8).all()
+    # New arrivals
+    new_arrivals = Product.query.filter_by(
+        status='active'
+    ).order_by(Product.created_at.desc()).limit(8).all()
 
-        # Get best sellers (most ordered products)
-        best_sellers = Product.query.filter_by(
-            is_active=True
-        ).limit(8).all()
+    # Best sellers (based on total_sold field)
+    best_sellers = Product.query.filter_by(
+        status='active'
+    ).order_by(Product.total_sold.desc()).limit(8).all()
 
-        # Get categories for navigation
-        categories = Category.query.filter_by(is_active=True).all()
-
-        return render_template('index.html',
-                               featured_products=featured_products,
-                               new_arrivals=new_arrivals,
-                               best_sellers=best_sellers,
-                               categories=categories,
-                               user=current_user())
-    except Exception as e:
-        print(f"Error loading products: {e}")
-        return render_template('index.html',
-                               featured_products=[],
-                               new_arrivals=[],
-                               best_sellers=[],
-                               categories=[],
-                               user=current_user())
+    return render_template('index.html',
+                           featured_products=featured_products,
+                           new_arrivals=new_arrivals,
+                           best_sellers=best_sellers)
 
 
-@shop_bp.route('/about')
-def about():
-    try:
-        # Get some stats for the about page
-        total_products = Product.query.filter_by(is_active=True).count()
-        total_orders = Order.query.count()
+@shop_bp.route('/products')
+def products():
+    """All products page with filtering"""
+    category_slug = request.args.get('category')
+    search_query = request.args.get('q')
+    featured = request.args.get('featured')
+    new_arrivals = request.args.get('new_arrivals')
+    on_sale = request.args.get('on_sale')
+    best_sellers = request.args.get('best_sellers')
 
-        stats = {
-            'happy_customers': 500,
-            'total_products': total_products,
-            'orders_delivered': total_orders,
-            'positive_reviews': 98
-        }
+    # Base query
+    query = Product.query.filter_by(status='active')
 
-        return render_template('about.html',
-                               stats=stats,
-                               user=current_user())
-    except Exception as e:
-        print(f"Error loading about page: {e}")
-        return render_template('about.html',
-                               stats={},
-                               user=current_user())
+    # Filter by category
+    if category_slug:
+        category = Category.query.filter_by(slug=category_slug, is_active=True).first()
+        if category:
+            query = query.filter_by(category_id=category.id)
 
+    # Search
+    if search_query:
+        query = query.filter(
+            Product.name.ilike(f'%{search_query}%') |
+            Product.description.ilike(f'%{search_query}%') |
+            Product.short_description.ilike(f'%{search_query}%')
+        )
 
-@shop_bp.route('/contact')
-def contact():
-    return render_template('contact.html', user=current_user())
+    # Additional filters
+    if featured:
+        query = query.filter_by(is_featured=True)
+    if new_arrivals:
+        query = query.order_by(Product.created_at.desc())
+    if on_sale:
+        query = query.filter_by(is_on_sale=True)
+    if best_sellers:
+        query = query.order_by(Product.total_sold.desc())
 
+    products = query.all()
 
-@shop_bp.route('/category')
-@shop_bp.route('/category/<slug>')
-def category(slug=None):
-    try:
-        if slug:
-            # Specific category page
-            category_obj = Category.query.filter_by(slug=slug, is_active=True).first()
-            if not category_obj:
-                flash('Category not found', 'warning')
-                return redirect(url_for('shop.category'))
-
-            products = Product.query.filter_by(
-                category_id=category_obj.id,
-                is_active=True
-            ).all()
-
-            return render_template('category.html',
-                                   category=category_obj,
-                                   products=products,
-                                   user=current_user())
-        else:
-            # All categories page
-            products = Product.query.filter_by(is_active=True).all()
-            return render_template('category.html',
-                                   products=products,
-                                   user=current_user())
-
-    except Exception as e:
-        print(f"Error loading category: {e}")
-        return redirect(url_for('shop.index'))
-
-
-@shop_bp.route('/product/<slug>')
-def product_details(slug):
-    try:
-        product = Product.query.filter_by(slug=slug, is_active=True).first()
-        if not product:
-            flash('Product not found', 'warning')
-            return redirect(url_for('shop.index'))
-
-        # Get related products (same category)
-        related_products = Product.query.filter(
-            Product.category_id == product.category_id,
-            Product.id != product.id,
-            Product.is_active == True
-        ).limit(4).all()
-
-        # Get approved reviews
-        reviews = Review.query.filter_by(
-            product_id=product.id,
-            is_approved=True
-        ).order_by(Review.created_at.desc()).all()
-
-        return render_template('product-details.html',
-                               product=product,
-                               related_products=related_products,
-                               reviews=reviews,
-                               user=current_user())
-    except Exception as e:
-        print(f"Error loading product: {e}")
-        flash('Error loading product', 'danger')
-        return redirect(url_for('shop.index'))
+    return render_template('shop/products.html',
+                           products=products,
+                           category_slug=category_slug,
+                           search_query=search_query)
 
 
 @shop_bp.route('/search')
 def search():
+    """Search page - redirects to products with search query"""
+    search_query = request.args.get('q', '')
+    return redirect(url_for('shop.products', q=search_query))
+
+
+@shop_bp.route('/product/<slug>')
+def product_detail(slug):
+    """Product detail page"""
+    product = Product.query.filter_by(slug=slug, status='active').first_or_404()
+
+    # Increment view count
+    product.view_count += 1
+    db.session.commit()
+
+    # Get related products
+    related_products = Product.query.filter(
+        Product.category_id == product.category_id,
+        Product.id != product.id,
+        Product.status == 'active'
+    ).limit(4).all()
+
+    # Get approved reviews
+    reviews = Review.query.filter_by(
+        product_id=product.id,
+        status='approved'
+    ).order_by(Review.created_at.desc()).all()
+
+    return render_template('shop/product_detail.html',
+                           product=product,
+                           related_products=related_products,
+                           reviews=reviews)
+
+
+@shop_bp.route('/categories')
+def categories():
+    """Categories page"""
+    categories = Category.query.filter_by(is_active=True).all()
+    return render_template('shop/categories.html', categories=categories)
+
+
+@shop_bp.route('/category/<slug>')
+def category(slug):
+    """Category detail page"""
+    category = Category.query.filter_by(slug=slug, is_active=True).first_or_404()
+    products = Product.query.filter_by(
+        category_id=category.id,
+        status='active'
+    ).all()
+
+    return render_template('shop/category_detail.html',
+                           category=category,
+                           products=products)
+
+
+@shop_bp.route('/brand/<slug>')
+def brand(slug):
+    """Brand products page"""
+    brand = Brand.query.filter_by(slug=slug, is_active=True).first_or_404()
+    products = Product.query.filter_by(
+        brand_id=brand.id,
+        status='active'
+    ).all()
+
+    return render_template('shop/brand.html',
+                           brand=brand,
+                           products=products)
+
+
+# Cart Routes
+@shop_bp.route('/add-to-cart', methods=['POST'])
+def add_to_cart():
+    """Add product to cart"""
     try:
-        query = request.args.get('q', '').strip()
-        category_id = request.args.get('category', type=int)
+        product_id = request.form.get('product_id') or request.json.get('product_id')
+        variation_id = request.form.get('variation_id') or request.json.get('variation_id')
+        quantity = int(request.form.get('quantity', 1) or request.json.get('quantity', 1))
 
-        if not query:
-            return redirect(url_for('shop.index'))
+        print(f"DEBUG: Adding to cart - product_id: {product_id}, variation_id: {variation_id}, quantity: {quantity}")
+        print(f"DEBUG: User authenticated: {current_user.is_authenticated}")
 
-        # Build search query
-        search_filter = and_(
-            Product.is_active == True,
-            or_(
-                Product.name.ilike(f'%{query}%'),
-                Product.description.ilike(f'%{query}%'),
-                Product.short_description.ilike(f'%{query}%')
-            )
-        )
+        if not product_id:
+            return jsonify({'success': False, 'message': 'Product ID is required'})
 
-        if category_id:
-            search_filter = and_(search_filter, Product.category_id == category_id)
+        product = Product.query.get_or_404(product_id)
 
-        products = Product.query.filter(search_filter).all()
+        if current_user.is_authenticated:
+            # For logged-in users - save to database
+            print(f"DEBUG: Checking existing cart items for user {current_user.id}")
+            cart_item = ShoppingCart.query.filter_by(
+                user_id=current_user.id,
+                product_id=product_id,
+                variation_id=variation_id
+            ).first()
 
-        return render_template('search-results.html',
-                               products=products,
-                               search_query=query,
-                               selected_category=category_id,
-                               user=current_user())
+            if cart_item:
+                print(
+                    f"DEBUG: Found existing cart item, increasing quantity from {cart_item.quantity} to {cart_item.quantity + quantity}")
+                cart_item.quantity += quantity
+            else:
+                print(f"DEBUG: No existing cart item, creating new one")
+                cart_item = ShoppingCart(
+                    user_id=current_user.id,
+                    product_id=product_id,
+                    variation_id=variation_id,
+                    quantity=quantity
+                )
+                db.session.add(cart_item)
 
-    except Exception as e:
-        print(f"Search error: {e}")
-        return redirect(url_for('shop.index'))
-
-
-@shop_bp.route('/add-to-cart/<int:product_id>', methods=['POST'])
-def add_to_cart(product_id):
-    try:
-        product = Product.query.get(product_id)
-        if not product or not product.is_active:
-            flash('Product not available', 'warning')
-            return redirect(request.referrer or url_for('shop.index'))
-
-        if not product.is_in_stock():
-            flash('Product is out of stock', 'warning')
-            return redirect(request.referrer or url_for('shop.index'))
-
-        quantity = request.form.get('quantity', 1, type=int)
-
-        # Validate quantity
-        if quantity < 1:
-            quantity = 1
-        if quantity > product.inventory_quantity:
-            flash(f'Only {product.inventory_quantity} items available', 'warning')
-            quantity = product.inventory_quantity
-
-        cart = session.get('cart', [])
-
-        # Check if product already in cart
-        cart_item = None
-        for item in cart:
-            if item['id'] == product_id:
-                cart_item = item
-                break
-
-        if cart_item:
-            # Update quantity
-            new_quantity = cart_item['quantity'] + quantity
-            if new_quantity > product.inventory_quantity:
-                flash(f'Only {product.inventory_quantity} items available in total', 'warning')
-                new_quantity = product.inventory_quantity
-            cart_item['quantity'] = new_quantity
+            db.session.commit()
+            print(f"DEBUG: Cart updated in database")
         else:
-            # Add new item
-            cart.append({
-                'id': product.id,
-                'name': product.name,
-                'price': float(product.price),
-                'quantity': quantity,
-                'image_url': product.image_url,
-                'slug': product.slug,
-                'max_quantity': product.inventory_quantity
-            })
+            # For guests - save to session
+            print(f"DEBUG: Guest user - using session cart")
+            if 'cart' not in session:
+                session['cart'] = []
+                print(f"DEBUG: Created new session cart")
 
-        session['cart'] = cart
-        session.modified = True
+            # Check if item already exists in cart
+            cart_item_exists = False
+            print(f"DEBUG: Current session cart: {session['cart']}")
 
-        flash(f'Added {product.name} to cart', 'success')
-        return redirect(request.referrer or url_for('shop.index'))
+            for index, item in enumerate(session['cart']):
+                print(f"DEBUG: Checking item {index}: {item}")
+                if (str(item['product_id']) == str(product_id) and
+                        str(item.get('variation_id', '')) == str(variation_id if variation_id else '')):
+                    print(
+                        f"DEBUG: Found existing item at index {index}, increasing quantity from {item['quantity']} to {item['quantity'] + quantity}")
+                    item['quantity'] += quantity
+                    cart_item_exists = True
+                    break
+
+            if not cart_item_exists:
+                print(f"DEBUG: No existing item found, adding new item")
+                session['cart'].append({
+                    'product_id': int(product_id),
+                    'variation_id': int(variation_id) if variation_id else None,
+                    'quantity': quantity
+                })
+
+            session.modified = True
+            print(f"DEBUG: Updated session cart: {session['cart']}")
+
+        # Get updated cart count
+        updated_cart_count = get_cart_count()
+        print(f"DEBUG: Updated cart count: {updated_cart_count}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Product added to cart',
+            'cart_count': updated_cart_count
+        })
 
     except Exception as e:
-        print(f"Add to cart error: {e}")
-        flash('Error adding item to cart', 'danger')
-        return redirect(request.referrer or url_for('shop.index'))
+        print(f"DEBUG: Error in add-to-cart: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
 
 @shop_bp.route('/cart')
 def cart():
+    """Shopping cart page"""
+    cart_items = []
+    total_amount = 0
+
+    if current_user.is_authenticated:
+        # Get cart items from database
+        cart_items = ShoppingCart.query.filter_by(user_id=current_user.id).all()
+        for item in cart_items:
+            if item.product:
+                item_total = float(item.product.base_price) * item.quantity
+                total_amount += item_total
+    else:
+        # Get cart items from session
+        if 'cart' in session:
+            for item_data in session['cart']:
+                product = Product.query.get(item_data['product_id'])
+                if product:
+                    item_total = float(product.base_price) * item_data['quantity']
+                    total_amount += item_total
+                    cart_items.append({
+                        'product': product,
+                        'quantity': item_data['quantity'],
+                        'variation_id': item_data.get('variation_id')
+                    })
+
+    return render_template('shop/cart.html',
+                           cart_items=cart_items,
+                           total_amount=total_amount)
+
+
+@shop_bp.route('/update-cart', methods=['POST'])
+def update_cart():
+    """Update cart item quantity"""
+    # Flask-WTF automatically handles CSRF validation
+
     try:
-        cart_items = session.get('cart', [])
-        subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
+        item_id = request.json.get('item_id')
+        quantity = int(request.json.get('quantity', 1))
 
-        # Calculate totals
-        shipping = 0 if subtotal >= 50 else 5.99  # Free shipping over $50
-        tax = subtotal * 0.08  # 8% tax
-        total = subtotal + shipping + tax
+        if current_user.is_authenticated:
+            cart_item = ShoppingCart.query.get_or_404(item_id)
+            if cart_item.user_id != current_user.id:
+                return jsonify({'success': False, 'message': 'Unauthorized'})
 
-        return render_template('cart.html',
-                               cart=cart_items,
-                               subtotal=subtotal,
-                               shipping=shipping,
-                               tax=tax,
-                               total=total,
-                               user=current_user())
-    except Exception as e:
-        print(f"Cart error: {e}")
-        return render_template('cart.html',
-                               cart=[],
-                               subtotal=0,
-                               shipping=0,
-                               tax=0,
-                               total=0,
-                               user=current_user())
-
-
-@shop_bp.route('/update-cart/<int:product_id>', methods=['POST'])
-def update_cart(product_id):
-    try:
-        quantity = request.form.get('quantity', type=int)
-        cart = session.get('cart', [])
-
-        for item in cart:
-            if item['id'] == product_id:
-                if quantity and quantity > 0:
-                    if quantity <= item.get('max_quantity', 999):
-                        item['quantity'] = quantity
-                        flash('Cart updated', 'success')
-                    else:
-                        flash(f'Maximum {item.get("max_quantity")} items available', 'warning')
-                        item['quantity'] = item.get('max_quantity', 1)
+            if quantity <= 0:
+                db.session.delete(cart_item)
+            else:
+                cart_item.quantity = quantity
+        else:
+            # Update session cart
+            if 'cart' in session and 0 <= item_id < len(session['cart']):
+                if quantity <= 0:
+                    session['cart'].pop(item_id)
                 else:
-                    cart.remove(item)
-                    flash('Item removed from cart', 'success')
-                break
+                    session['cart'][item_id]['quantity'] = quantity
+                session.modified = True
 
-        session['cart'] = cart
-        session.modified = True
-        return redirect(url_for('shop.cart'))
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Cart updated'})
 
     except Exception as e:
-        print(f"Update cart error: {e}")
-        flash('Error updating cart', 'danger')
-        return redirect(url_for('shop.cart'))
+        return jsonify({'success': False, 'message': str(e)})
 
 
-@shop_bp.route('/remove-from-cart/<int:product_id>')
-def remove_from_cart(product_id):
+@shop_bp.route('/remove-from-cart', methods=['POST'])
+def remove_from_cart():
+    """Remove item from cart"""
+    # Flask-WTF automatically handles CSRF validation
+
     try:
-        cart = session.get('cart', [])
-        cart = [item for item in cart if item['id'] != product_id]
-        session['cart'] = cart
-        session.modified = True
-        flash('Item removed from cart', 'success')
-        return redirect(url_for('shop.cart'))
+        item_id = request.json.get('item_id')
+
+        if current_user.is_authenticated:
+            cart_item = ShoppingCart.query.get_or_404(item_id)
+            if cart_item.user_id != current_user.id:
+                return jsonify({'success': False, 'message': 'Unauthorized'})
+            db.session.delete(cart_item)
+        else:
+            # Remove from session cart
+            if 'cart' in session and 0 <= item_id < len(session['cart']):
+                session['cart'].pop(item_id)
+                session.modified = True
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Item removed from cart'})
+
     except Exception as e:
-        print(f"Remove from cart error: {e}")
-        flash('Error removing item', 'danger')
-        return redirect(url_for('shop.cart'))
+        return jsonify({'success': False, 'message': str(e)})
 
 
-@shop_bp.route('/wishlist/add/<int:product_id>')
-def add_to_wishlist(product_id):
+# Wishlist Routes
+@shop_bp.route('/add-to-wishlist', methods=['POST'])
+@login_required
+def add_to_wishlist():
+    """Add product to wishlist"""
+    # Flask-WTF automatically handles CSRF validation
+
     try:
-        user = current_user()
-        if not user:
-            flash('Please login to add items to wishlist', 'warning')
-            return redirect(url_for('auth.login'))
+        product_id = request.form.get('product_id') or request.json.get('product_id')
 
-        product = Product.query.get(product_id)
-        if not product:
-            flash('Product not found', 'warning')
-            return redirect(request.referrer or url_for('shop.index'))
+        if not product_id:
+            return jsonify({'success': False, 'message': 'Product ID is required'})
 
         # Check if already in wishlist
         existing = Wishlist.query.filter_by(
-            user_id=user.id,
+            user_id=current_user.id,
             product_id=product_id
         ).first()
 
         if existing:
-            flash('Product already in wishlist', 'info')
-        else:
-            wishlist_item = Wishlist(user_id=user.id, product_id=product_id)
-            db.session.add(wishlist_item)
-            db.session.commit()
-            flash('Added to wishlist', 'success')
+            return jsonify({'success': False, 'message': 'Product already in wishlist'})
 
-        return redirect(request.referrer or url_for('shop.index'))
+        wishlist_item = Wishlist(
+            user_id=current_user.id,
+            product_id=product_id
+        )
+        db.session.add(wishlist_item)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Product added to wishlist',
+            'wishlist_count': get_wishlist_count()
+        })
 
     except Exception as e:
-        print(f"Wishlist error: {e}")
-        flash('Error adding to wishlist', 'danger')
-        return redirect(request.referrer or url_for('shop.index'))
+        return jsonify({'success': False, 'message': str(e)})
 
 
 @shop_bp.route('/wishlist')
+@login_required
 def wishlist():
+    """Wishlist page"""
+    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    return render_template('shop/wishlist.html', wishlist_items=wishlist_items)
+
+
+@shop_bp.route('/remove-from-wishlist', methods=['POST'])
+@login_required
+def remove_from_wishlist():
+    """Remove item from wishlist"""
+    # Flask-WTF automatically handles CSRF validation
+
     try:
-        user = current_user()
-        if not user:
-            flash('Please login to view your wishlist', 'warning')
-            return redirect(url_for('auth.login'))
+        item_id = request.json.get('item_id')
+        wishlist_item = Wishlist.query.get_or_404(item_id)
 
-        wishlist_items = Wishlist.query.filter_by(user_id=user.id).all()
-        wishlist_products = [item.product for item in wishlist_items]
+        if wishlist_item.user_id != current_user.id:
+            return jsonify({'success': False, 'message': 'Unauthorized'})
 
-        return render_template('wishlist.html',
-                               wishlist_products=wishlist_products,
-                               user=user)
-
-    except Exception as e:
-        print(f"Wishlist error: {e}")
-        return redirect(url_for('shop.index'))
-
-
-@shop_bp.route('/wishlist/remove/<int:product_id>')
-def remove_from_wishlist(product_id):
-    try:
-        user = current_user()
-        if not user:
-            return redirect(url_for('auth.login'))
-
-        wishlist_item = Wishlist.query.filter_by(
-            user_id=user.id,
-            product_id=product_id
-        ).first()
-
-        if wishlist_item:
-            db.session.delete(wishlist_item)
-            db.session.commit()
-            flash('Removed from wishlist', 'success')
-
-        return redirect(url_for('shop.wishlist'))
-
-    except Exception as e:
-        print(f"Remove wishlist error: {e}")
-        flash('Error removing from wishlist', 'danger')
-        return redirect(url_for('shop.wishlist'))
-
-
-@shop_bp.route('/checkout', methods=['GET', 'POST'])
-def checkout():
-    try:
-        user = current_user()
-        cart_items = session.get('cart', [])
-
-        if not cart_items:
-            flash('Your cart is empty', 'warning')
-            return redirect(url_for('shop.cart'))
-
-        if request.method == 'POST':
-            if not user:
-                flash('Please login to checkout', 'warning')
-                return redirect(url_for('auth.login'))
-
-            # Calculate totals
-            subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
-            shipping = 0 if subtotal >= 50 else 5.99
-            tax = subtotal * 0.08
-            total = subtotal + shipping + tax
-
-            # Get form data
-            shipping_address = {
-                'name': request.form.get('shipping_name'),
-                'address': request.form.get('shipping_address'),
-                'city': request.form.get('shipping_city'),
-                'state': request.form.get('shipping_state'),
-                'zip_code': request.form.get('shipping_zip'),
-                'country': request.form.get('shipping_country'),
-                'phone': request.form.get('shipping_phone')
-            }
-
-            # Create order
-            order = Order(
-                user_id=user.id,
-                subtotal=subtotal,
-                shipping_amount=shipping,
-                tax_amount=tax,
-                total=total,
-                payment_method=request.form.get('payment_method'),
-                shipping_address=shipping_address,
-                billing_address=shipping_address,  # Same as shipping for now
-                customer_note=request.form.get('customer_note')
-            )
-
-            db.session.add(order)
-            db.session.commit()
-
-            # Add order items
-            for item in cart_items:
-                order_item = OrderItem(
-                    order_id=order.id,
-                    product_id=item['id'],
-                    product_name=item['name'],
-                    product_price=item['price'],
-                    quantity=item['quantity'],
-                    image_url=item['image_url']
-                )
-                db.session.add(order_item)
-
-            db.session.commit()
-
-            # Clear cart
-            session.pop('cart', None)
-            session.modified = True
-
-            flash('Order placed successfully!', 'success')
-            return redirect(url_for('shop.order_confirmation', order_id=order.id))
-
-        # GET request - show checkout form
-        subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
-        shipping = 0 if subtotal >= 50 else 5.99
-        tax = subtotal * 0.08
-        total = subtotal + shipping + tax
-
-        return render_template('checkout.html',
-                               cart=cart_items,
-                               subtotal=subtotal,
-                               shipping=shipping,
-                               tax=tax,
-                               total=total,
-                               user=user)
-
-    except Exception as e:
-        print(f"Checkout error: {e}")
-        flash('Error during checkout', 'danger')
-        return redirect(url_for('shop.cart'))
-
-
-@shop_bp.route('/order-confirmation/<int:order_id>')
-def order_confirmation(order_id):
-    try:
-        user = current_user()
-        if not user:
-            flash('Please login to view order', 'warning')
-            return redirect(url_for('auth.login'))
-
-        order = Order.query.filter_by(id=order_id, user_id=user.id).first()
-        if not order:
-            flash('Order not found', 'warning')
-            return redirect(url_for('shop.profile'))
-
-        return render_template('order-confirmation.html',
-                               order=order,
-                               user=user)
-
-    except Exception as e:
-        print(f"Order confirmation error: {e}")
-        return redirect(url_for('shop.profile'))
-
-
-@shop_bp.route('/profile')
-def profile():
-    user = current_user()
-    if not user:
-        flash('Please login to view your profile', 'warning')
-        return redirect(url_for('auth.login'))
-
-    orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
-    return render_template('profile.html', user=user, orders=orders)
-
-
-@shop_bp.route('/account')
-def account():
-    user = current_user()
-    if not user:
-        flash('Please login to access your account', 'warning')
-        return redirect(url_for('auth.login'))
-
-    orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).limit(5).all()
-    wishlist_count = Wishlist.query.filter_by(user_id=user.id).count()
-
-    return render_template('account.html',
-                           user=user,
-                           orders=orders,
-                           wishlist_count=wishlist_count)
-
-
-@shop_bp.route('/update-profile', methods=['POST'])
-def update_profile():
-    try:
-        user = current_user()
-        if not user:
-            return redirect(url_for('auth.login'))
-
-        user.name = request.form.get('name', user.name)
-        user.phone = request.form.get('phone', user.phone)
-        user.address = request.form.get('address', user.address)
-        user.city = request.form.get('city', user.city)
-        user.state = request.form.get('state', user.state)
-        user.zip_code = request.form.get('zip_code', user.zip_code)
-        user.country = request.form.get('country', user.country)
-
+        db.session.delete(wishlist_item)
         db.session.commit()
-        flash('Profile updated successfully', 'success')
-        return redirect(url_for('shop.account'))
+
+        return jsonify({'success': True, 'message': 'Item removed from wishlist'})
 
     except Exception as e:
-        print(f"Update profile error: {e}")
-        flash('Error updating profile', 'danger')
-        return redirect(url_for('shop.account'))
+        return jsonify({'success': False, 'message': str(e)})
 
 
-# Static pages
-@shop_bp.route('/support')
-def support():
-    return render_template('support.html', user=current_user())
+# User Account Routes - UPDATED PATHS
+@shop_bp.route('/account')
+@login_required
+def account():
+    """User account dashboard"""
+    user_orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).limit(5).all()
+    default_address = UserAddress.query.filter_by(user_id=current_user.id, is_default=True).first()
+
+    return render_template('account/account.html',
+                           user_orders=user_orders,
+                           default_address=default_address)
+
+
+@shop_bp.route('/orders')
+@login_required
+def orders():
+    """User orders page"""
+    user_orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    return render_template('account/orders.html', user_orders=user_orders)
+
+
+@shop_bp.route('/order/<order_number>')
+@login_required
+def order_detail(order_number):
+    """Order detail page"""
+    order = Order.query.filter_by(order_number=order_number, user_id=current_user.id).first_or_404()
+    return render_template('account/order_detail.html', order=order)
+
+
+@shop_bp.route('/addresses')
+@login_required
+def addresses():
+    """User addresses management"""
+    user_addresses = UserAddress.query.filter_by(user_id=current_user.id).all()
+    return render_template('account/addresses.html', user_addresses=user_addresses)
+
+
+@shop_bp.route('/add-address', methods=['POST'])
+@login_required
+def add_address():
+    """Add new address"""
+    # Flask-WTF automatically handles CSRF validation
+
+    try:
+        address_data = {
+            'user_id': current_user.id,
+            'full_name': request.form.get('full_name'),
+            'phone': request.form.get('phone'),
+            'address_line1': request.form.get('address_line1'),
+            'address_line2': request.form.get('address_line2'),
+            'landmark': request.form.get('landmark'),
+            'city': request.form.get('city'),
+            'state': request.form.get('state'),
+            'country': request.form.get('country', 'India'),
+            'postal_code': request.form.get('postal_code'),
+            'address_type': request.form.get('address_type', 'shipping'),
+            'address_type_detail': request.form.get('address_type_detail', 'home'),
+            'is_default': bool(request.form.get('is_default'))
+        }
+
+        # If setting as default, remove default from other addresses
+        if address_data['is_default']:
+            UserAddress.query.filter_by(user_id=current_user.id, is_default=True).update({'is_default': False})
+
+        new_address = UserAddress(**address_data)
+        db.session.add(new_address)
+        db.session.commit()
+
+        flash('Address added successfully', 'success')
+        return redirect(url_for('shop.addresses'))
+
+    except Exception as e:
+        flash('Error adding address', 'danger')
+        return redirect(url_for('shop.addresses'))
+
+
+@shop_bp.route('/edit-address/<int:address_id>', methods=['GET', 'POST'])
+@login_required
+def edit_address(address_id):
+    """Edit existing address"""
+    address = UserAddress.query.filter_by(id=address_id, user_id=current_user.id).first_or_404()
+
+    if request.method == 'POST':
+        try:
+            address.full_name = request.form.get('full_name')
+            address.phone = request.form.get('phone')
+            address.address_line1 = request.form.get('address_line1')
+            address.address_line2 = request.form.get('address_line2')
+            address.landmark = request.form.get('landmark')
+            address.city = request.form.get('city')
+            address.state = request.form.get('state')
+            address.country = request.form.get('country', 'India')
+            address.postal_code = request.form.get('postal_code')
+            address.address_type = request.form.get('address_type', 'shipping')
+            address.address_type_detail = request.form.get('address_type_detail', 'home')
+
+            is_default = bool(request.form.get('is_default'))
+            if is_default and not address.is_default:
+                # Remove default from other addresses
+                UserAddress.query.filter_by(user_id=current_user.id, is_default=True).update({'is_default': False})
+                address.is_default = True
+            elif not is_default and address.is_default:
+                address.is_default = False
+
+            db.session.commit()
+            flash('Address updated successfully', 'success')
+            return redirect(url_for('shop.addresses'))
+
+        except Exception as e:
+            flash('Error updating address', 'danger')
+            return redirect(url_for('shop.addresses'))
+
+    return render_template('account/edit_address.html', address=address)
+
+
+@shop_bp.route('/delete-address/<int:address_id>', methods=['POST'])
+@login_required
+def delete_address(address_id):
+    """Delete address"""
+    # Flask-WTF automatically handles CSRF validation
+
+    try:
+        address = UserAddress.query.filter_by(id=address_id, user_id=current_user.id).first_or_404()
+        db.session.delete(address)
+        db.session.commit()
+        flash('Address deleted successfully', 'success')
+    except Exception as e:
+        flash('Error deleting address', 'danger')
+
+    return redirect(url_for('shop.addresses'))
+
+
+# Static pages - UPDATED PATHS
+@shop_bp.route('/about')
+def about():
+    """About us page"""
+    return render_template('shop/about.html')
+
+
+@shop_bp.route('/contact')
+def contact():
+    """Contact us page"""
+    return render_template('shop/contact.html')
 
 
 @shop_bp.route('/shipping-info')
 def shipping_info():
-    return render_template('shipping-info.html', user=current_user())
+    """Shipping information page"""
+    return render_template('static_pages/shipping_info.html')
 
 
 @shop_bp.route('/return-policy')
 def return_policy():
-    return render_template('return-policy.html', user=current_user())
-
-
-@shop_bp.route('/tos')
-def tos():
-    return render_template('tos.html', user=current_user())
-
-
-@shop_bp.route('/privacy')
-def privacy():
-    return render_template('privacy.html', user=current_user())
+    """Return policy page"""
+    return render_template('static_pages/return_policy.html')
 
 
 @shop_bp.route('/faq')
 def faq():
-    return render_template('faq.html', user=current_user())
+    """FAQ page"""
+    return render_template('static_pages/faq.html')
 
 
-@shop_bp.route('/payment-methods')
-def payment_methods():
-    return render_template('payment-methods.html', user=current_user())
+@shop_bp.route('/terms')
+def tos():
+    """Terms of service page"""
+    return render_template('static_pages/tos.html')
+
+
+@shop_bp.route('/privacy')
+def privacy():
+    """Privacy policy page"""
+    return render_template('static_pages/privacy.html')
 
 
 # API endpoints for AJAX
 @shop_bp.route('/api/cart-count')
 def api_cart_count():
-    cart = session.get('cart', [])
-    count = sum(item['quantity'] for item in cart)
+    """Get cart count for AJAX requests"""
+    count = get_cart_count()
     return jsonify({'count': count})
 
 
 @shop_bp.route('/api/wishlist-count')
 def api_wishlist_count():
-    user = current_user()
-    if not user:
-        return jsonify({'count': 0})
-
-    count = Wishlist.query.filter_by(user_id=user.id).count()
-    return jsonify({'count': count})
+    """Get wishlist count for AJAX requests"""
+    return jsonify({'count': get_wishlist_count()})
 
 
-# Error handler
-@shop_bp.app_errorhandler(404)
+@shop_bp.route('/api/product/<int:product_id>/stock')
+def api_product_stock(product_id):
+    """Get product stock information"""
+    try:
+        product = Product.query.get_or_404(product_id)
+        return jsonify({
+            'success': True,
+            'stock_quantity': product.stock_quantity,
+            'stock_status': product.stock_status,
+            'is_in_stock': product.is_in_stock(),
+            'available_quantity': product.get_available_quantity()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+
+# Helper functions
+def get_cart_count():
+    """Get total cart count (sum of all quantities)"""
+    if current_user.is_authenticated:
+        # Sum all quantities for logged-in users
+        total_quantity = db.session.query(db.func.sum(ShoppingCart.quantity)).filter_by(user_id=current_user.id).scalar()
+        count = total_quantity or 0
+        print(f"DEBUG: Database cart total quantity for user {current_user.id}: {count}")
+        return count
+    else:
+        # Sum all quantities for guest users
+        cart = session.get('cart', [])
+        total_quantity = sum(item.get('quantity', 0) for item in cart)
+        print(f"DEBUG: Session cart total quantity: {total_quantity}")
+        return total_quantity
+
+
+def get_wishlist_count():
+    """Get wishlist count"""
+    if current_user.is_authenticated:
+        return Wishlist.query.filter_by(user_id=current_user.id).count()
+    return 0
+
+
+def get_cart_total():
+    """Get cart total amount"""
+    total = 0
+    if current_user.is_authenticated:
+        cart_items = ShoppingCart.query.filter_by(user_id=current_user.id).all()
+        for item in cart_items:
+            if item.product:
+                total += float(item.product.base_price) * item.quantity
+    else:
+        if 'cart' in session:
+            for item_data in session['cart']:
+                product = Product.query.get(item_data['product_id'])
+                if product:
+                    total += float(product.base_price) * item_data['quantity']
+    return total
+
+# logout
+@shop_bp.route('/auth/logout', methods=['POST'])
+@login_required
+def api_logout():
+    """API endpoint for logout"""
+    logout_user()
+    session.clear()
+    return jsonify({'success': True})
+
+# Error handlers for shop routes
+@shop_bp.errorhandler(404)
 def not_found_error(error):
-    return render_template('404.html', user=current_user()), 404
+    """Handle 404 errors for shop routes"""
+    return render_template('errors/404.html'), 404
 
 
+@shop_bp.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors for shop routes"""
+    db.session.rollback()
+    return render_template('errors/500.html'), 500
 
-# Add these context processors to your shop/routes.py
 
-@shop_bp.context_processor
-def inject_categories():
-    """Inject categories into all templates"""
-    try:
-        categories = Category.query.filter_by(is_active=True).all()
-        return dict(categories=categories)
-    except Exception as e:
-        print(f"Error loading categories: {e}")
-        return dict(categories=[])
+# Debugging helper for CSRF
+@shop_bp.route('/debug-csrf')
+def debug_csrf():
+    """Debug CSRF token"""
+    from flask_wtf.csrf import generate_csrf
+    return jsonify({
+        'csrf_token_in_meta': 'Check browser console',
+        'csrf_token_from_wtf': generate_csrf(),
+        'session_csrf_token': session.get('csrf_token')
+    })
 
-@shop_bp.context_processor
-def inject_featured_products():
-    """Inject featured products into all templates"""
-    try:
-        featured_products = Product.query.filter_by(
-            is_featured=True,
-            is_active=True
-        ).limit(4).all()
-        return dict(featured_products=featured_products)
-    except Exception as e:
-        print(f"Error loading featured products: {e}")
-        return dict(featured_products=[])
 
-@shop_bp.context_processor
-def inject_new_arrivals():
-    """Inject new arrivals into all templates"""
-    try:
-        new_arrivals = Product.query.filter_by(
-            is_active=True
-        ).order_by(Product.created_at.desc()).limit(4).all()
-        return dict(new_arrivals=new_arrivals)
-    except Exception as e:
-        print(f"Error loading new arrivals: {e}")
-        return dict(new_arrivals=[])
+@shop_bp.route('/debug-template')
+def debug_template():
+    """Debug template CSRF token"""
+    from flask_wtf.csrf import generate_csrf
+    csrf_from_wtf = generate_csrf()
+
+    # Render a simple template to see what's happening
+    return f"""
+    <html>
+    <head>
+        <title>CSRF Debug</title>
+        <meta name="csrf-token" content="{{{{ csrf_token() }}}}">
+    </head>
+    <body>
+        <h1>CSRF Debug Info</h1>
+        <p>CSRF from WTF: {csrf_from_wtf}</p>
+        <p>CSRF in template: {{ csrf_token() }}</p>
+        <p>Session CSRF: {session.get('csrf_token')}</p>
+
+        <script>
+            const metaTag = document.querySelector('meta[name="csrf-token"]');
+            console.log('Meta tag CSRF:', metaTag ? metaTag.getAttribute('content') : 'Not found');
+        </script>
+    </body>
+    </html>
+    """
