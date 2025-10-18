@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import uuid
 import bcrypt
+from .password_history import PasswordHistory
+from .address import UserAddress
 
 
 class User(UserMixin, db.Model):
@@ -94,3 +96,48 @@ class User(UserMixin, db.Model):
     def name(self):
         """Template compatibility - returns full name"""
         return f"{self.first_name} {self.last_name}"
+
+    def set_password_with_history(self, password):
+        """Hash and set password using bcrypt with history tracking"""
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        new_hash = bcrypt.hashpw(password, salt).decode('utf-8')
+
+        # Save current password to history before changing
+        if self.password_hash:
+            password_history = PasswordHistory(
+                user_id=self.id,
+                password_hash=self.password_hash
+            )
+            db.session.add(password_history)
+
+        self.password_hash = new_hash
+
+    def is_password_in_history(self, password, last_n=3):
+        """Check if password exists in user's last N passwords"""
+        return PasswordHistory.is_password_in_history(self.id, password, last_n)
+
+    def get_password_age_days(self):
+        """Get how many days since password was last changed"""
+        if not self.password_hash:
+            return 0
+
+        # Find the most recent password history entry
+        latest_history = PasswordHistory.query.filter_by(user_id=self.id) \
+            .order_by(PasswordHistory.created_at.desc()) \
+            .first()
+
+        if latest_history:
+            age_days = (datetime.utcnow() - latest_history.created_at).days
+        else:
+            # If no history, use user creation date
+            age_days = (datetime.utcnow() - self.created_at).days
+
+        return age_days
+
+    def should_change_password(self, max_age_days=90):
+        """Check if password should be changed based on age"""
+        return self.get_password_age_days() >= max_age_days
+
+# ✅ CLASS ENDS HERE - NO MORE METHODS AFTER THIS

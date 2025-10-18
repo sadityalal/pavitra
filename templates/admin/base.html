@@ -5,8 +5,9 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>{% block title %}Admin Panel - Pavitra Enterprises{% endblock %}</title>
-  <meta name="description" content="{% block description %}Pavitra Enterprises Admin Panel - Manage products, categories, orders and more.{% endblock %}">
+  <meta name="description" content="{% block description %}Pavitra Enterprises Admin Panel - Manage products, orders, inventory and more.{% endblock %}">
   <meta name="keywords" content="{% block keywords %}admin, dashboard, ecommerce, management, pavitra enterprises{% endblock %}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Favicons -->
   <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
@@ -26,118 +27,7 @@
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
 
   <!-- Admin Custom CSS -->
-  <style>
-    .admin-sidebar {
-        min-height: 100vh;
-        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-        color: white;
-        position: fixed;
-        width: 280px;
-        z-index: 1000;
-        overflow-y: auto;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    }
-    .admin-main {
-        margin-left: 280px;
-        padding: 0;
-        min-height: 100vh;
-        background-color: #f8f9fa;
-    }
-    .admin-content {
-        padding: 30px;
-    }
-    .sidebar-nav .nav-link {
-        color: #bdc3c7;
-        padding: 15px 25px;
-        border-left: 4px solid transparent;
-        text-decoration: none;
-        display: block;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        border-radius: 0;
-    }
-    .sidebar-nav .nav-link:hover {
-        color: white;
-        background: rgba(255,255,255,0.1);
-        border-left-color: #e74c3c;
-        transform: translateX(5px);
-    }
-    .sidebar-nav .nav-link.active {
-        color: white;
-        background: rgba(255,255,255,0.15);
-        border-left-color: #3498db;
-        font-weight: 600;
-    }
-    .sidebar-nav .nav-link i {
-        width: 20px;
-        margin-right: 12px;
-        font-size: 1.1em;
-    }
-
-    .admin-header {
-        background: white;
-        border-bottom: 1px solid #e9ecef;
-        padding: 20px 30px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stat-card {
-        border-radius: 12px;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-left: 4px solid #3498db;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    .stat-card .card-body {
-        padding: 25px;
-    }
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 0;
-        color: #2c3e50;
-    }
-
-    .table-actions .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-        border-radius: 6px;
-    }
-
-    /* Mobile responsiveness */
-    @media (max-width: 768px) {
-        .admin-sidebar {
-            width: 100%;
-            position: relative;
-            min-height: auto;
-        }
-        .admin-main {
-            margin-left: 0;
-        }
-        .admin-content {
-            padding: 20px 15px;
-        }
-    }
-
-    /* Custom scrollbar for sidebar */
-    .admin-sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .admin-sidebar::-webkit-scrollbar-track {
-        background: rgba(255,255,255,0.1);
-    }
-    .admin-sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.3);
-        border-radius: 3px;
-    }
-    .admin-sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255,255,255,0.5);
-    }
-  </style>
+  <link href="{{ url_for('static', filename='css/admin_base.css') }}" rel="stylesheet">
 </head>
 
 <body class="admin-body">
@@ -148,7 +38,8 @@
       <!-- Sidebar -->
       <nav class="admin-sidebar col-lg-2">
         <div class="position-sticky pt-4">
-          <div class="sidebar-header px-4 py-4 text-center">
+          <!-- Sidebar Header -->
+          <div class="sidebar-header px-4 py-4 text-center" data-aos="fade-down">
             <h4 class="text-white mb-2">
               <i class="bi bi-speedometer2"></i>
               Admin Panel
@@ -156,89 +47,126 @@
             <small class="text-light">Pavitra Enterprises</small>
             <div class="mt-3">
               <span class="badge bg-success">
-                <i class="bi bi-shield-check"></i> Admin
+                <i class="bi bi-shield-check"></i> Administrator
               </span>
             </div>
           </div>
 
+          <!-- Navigation Menu -->
           <ul class="nav flex-column sidebar-nav mt-4">
             <li class="nav-item">
               <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
-                 href="{{ url_for('admin.dashboard') }}">
+                 href="{{ url_for('admin.dashboard') }}" data-aos="fade-right" data-aos-delay="100">
                 <i class="bi bi-grid"></i>
                 Dashboard
               </a>
             </li>
+
             <li class="nav-item">
               <a class="nav-link {% if request.endpoint in ['admin.products', 'admin.new_product', 'admin.edit_product'] %}active{% endif %}"
-                 href="{{ url_for('admin.products') }}">
+                 href="{{ url_for('admin.products') }}" data-aos="fade-right" data-aos-delay="150">
                 <i class="bi bi-box-seam"></i>
                 Products
               </a>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link {% if request.endpoint in ['admin.categories', 'admin.new_category'] %}active{% endif %}"
-                 href="{{ url_for('admin.categories') }}">
+              <a class="nav-link {% if request.endpoint == 'admin.categories' %}active{% endif %}"
+                 href="{{ url_for('admin.categories') }}" data-aos="fade-right" data-aos-delay="200">
                 <i class="bi bi-tags"></i>
                 Categories
               </a>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link {% if request.endpoint in ['admin.orders', 'admin.order_details'] %}active{% endif %}"
-                 href="{{ url_for('admin.orders') }}">
+              <a class="nav-link {% if request.endpoint in ['admin.orders', 'admin.order_detail'] %}active{% endif %}"
+                 href="{{ url_for('admin.orders') }}" data-aos="fade-right" data-aos-delay="250">
                 <i class="bi bi-receipt"></i>
                 Orders
+                <span class="badge bg-primary float-end" id="pending-orders-count">{{ pending_orders }}</span>
               </a>
             </li>
 
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.stock_management' %}active{% endif %}"
+                 href="{{ url_for('admin.stock_management') }}" data-aos="fade-right" data-aos-delay="300">
+                <i class="bi bi-clipboard-data"></i>
+                Stock Management
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.reviews' %}active{% endif %}"
+                 href="{{ url_for('admin.reviews') }}" data-aos="fade-right" data-aos-delay="350">
+                <i class="bi bi-star"></i>
+                Reviews
+              </a>
+            </li>
+
+            <!-- Navigation Links -->
             <li class="nav-item mt-5">
-              <a class="nav-link text-warning" href="{{ url_for('shop.index') }}">
+              <a class="nav-link text-warning" href="{{ url_for('shop.index') }}" data-aos="fade-right" data-aos-delay="400">
                 <i class="bi bi-shop"></i>
                 Back to Store
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">
+              <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}" data-aos="fade-right" data-aos-delay="450">
                 <i class="bi bi-box-arrow-right"></i>
                 Logout
               </a>
             </li>
           </ul>
 
-          <!-- Admin Footer -->
+          <!-- Sidebar Footer -->
           <div class="sidebar-footer px-4 py-3 mt-5 text-center">
             <small class="text-light opacity-75">
               &copy; 2024 Pavitra Enterprises<br>
-              <span class="text-warning">Admin Access</span>
+              <span class="text-warning">Admin v1.0</span>
             </small>
           </div>
         </div>
       </nav>
 
-      <!-- Main content -->
+      <!-- Main Content -->
       <main class="admin-main col-lg-10">
         <!-- Admin Header -->
         <div class="admin-header">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <h4 class="mb-0 text-dark">
+              <h4 class="mb-0 text-heading-color" style="font-family: var(--heading-font);">
                 {% block page_title %}Admin Dashboard{% endblock %}
               </h4>
               <nav aria-label="breadcrumb" class="mt-2">
                 <ol class="breadcrumb mb-0">
-                  <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Admin</a></li>
+                  <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">Admin</a></li>
                   {% block breadcrumb %}{% endblock %}
                 </ol>
               </nav>
             </div>
             <div class="admin-actions">
-              <div class="btn-group">
-                <a href="{{ url_for('shop.index') }}" class="btn btn-outline-primary">
-                  <i class="bi bi-shop me-1"></i> View Store
-                </a>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger ms-2">
-                  <i class="bi bi-box-arrow-right me-1"></i> Logout
-                </a>
+              <div class="d-flex align-items-center gap-3">
+                <!-- Quick Stats -->
+                <div class="d-none d-md-flex gap-4">
+                  <div class="text-center">
+                    <small class="text-muted d-block">Today's Orders</small>
+                    <strong class="text-primary" id="today-orders">{{ today_orders }}</strong>
+                  </div>
+                  <div class="text-center">
+                    <small class="text-muted d-block">Today's Revenue</small>
+                    <strong class="text-success" id="today-revenue">₹{{ "%.2f"|format(today_revenue) if today_revenue else "0.00" }}</strong>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                  <a href="{{ url_for('shop.index') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-shop me-1"></i> View Store
+                  </a>
+                  <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm ms-2">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -250,7 +178,7 @@
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mb-4" role="alert">
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mb-4" role="alert" data-aos="fade-down">
                   <div class="d-flex align-items-center">
                     <i class="bi bi-{{ 'exclamation-triangle-fill' if category == 'error' else 'check-circle-fill' if category == 'success' else 'info-circle-fill' }} me-2"></i>
                     <div>{{ message }}</div>
@@ -273,6 +201,12 @@
   <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
 
+  <!-- Main JS File -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- Admin JS -->
+  <script src="{{ url_for('static', filename='js/admin_base.js') }}"></script>
+
   <!-- Initialize AOS -->
   <script>
     AOS.init({
@@ -287,5 +221,4 @@
   {% endblock %}
 
 </body>
-
 </html>

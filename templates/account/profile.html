@@ -1,1 +1,0 @@
-{% extends 'base.html' %}{% block body %}<h3>Profile</h3><p>Name: {{ user.name }}</p><p>Email: {{ user.email }}</p><h4>Your Orders</h4>{% for o in orders %}<div class="card mb-2"><div class="card-body">Order #{{ o.id }} - ₹{{ '%.2f'|format(o.total) }} - {{ o.created_at }}</div></div>{% else %}<div class="alert alert-info">No orders</div>{% endfor %}{% endblock %}

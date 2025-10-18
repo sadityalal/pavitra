@@ -405,7 +405,7 @@ def remove_from_wishlist():
         return jsonify({'success': False, 'message': str(e)})
 
 
-# User Account Routes - UPDATED PATHS
+# User Routes - UPDATED PATHS
 @shop_bp.route('/account')
 @login_required
 def account():

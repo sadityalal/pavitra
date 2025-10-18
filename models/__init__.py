@@ -10,6 +10,9 @@ from .cart import ShoppingCart
 from .review import Review, ReviewHelpfulness
 from .coupon import Coupon, CouponUsage
 from .stock import StockMovement, StockAlert
+from .password_history import PasswordHistory
+from .payment import PaymentMethod, PaymentTransaction
+from .order_history import OrderHistory
 
 # Make all models available for import
 __all__ = [
@@ -21,5 +24,6 @@ __all__ = [
     'Wishlist', 'ShoppingCart',
     'Review', 'ReviewHelpfulness',
     'Coupon', 'CouponUsage',
-    'StockMovement', 'StockAlert'
+    'StockMovement', 'StockAlert',
+    'PasswordHistory', 'PaymentMethod', 'PaymentTransaction', 'OrderHistory'
 ]

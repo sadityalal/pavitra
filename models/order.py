@@ -5,6 +5,8 @@ import uuid
 import random
 import string
 
+from .order_history import OrderHistory
+
 
 class Order(db.Model):
     __tablename__ = 'orders'
@@ -98,6 +100,62 @@ class Order(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'estimated_delivery': self.estimated_delivery.isoformat() if self.estimated_delivery else None
         }
+
+    # ✅ ADD THESE METHODS INSIDE THE CLASS (PROPERLY INDENTED):
+
+    def add_history_entry(self, field_changed, old_value, new_value, changed_by=None, reason=None, change_type='system'):
+        """Add an entry to order history"""
+        history = OrderHistory(
+            order_id=self.id,
+            field_changed=field_changed,
+            old_value=str(old_value) if old_value is not None else None,
+            new_value=str(new_value) if new_value is not None else None,
+            changed_by=changed_by,
+            change_type=change_type,
+            reason=reason
+        )
+        db.session.add(history)
+
+    def set_status(self, new_status, changed_by=None, reason=None):
+        """Set order status with history tracking"""
+        old_status = self.status
+        if old_status != new_status:
+            self.status = new_status
+            self.add_history_entry(
+                field_changed='status',
+                old_value=old_status,
+                new_value=new_status,
+                changed_by=changed_by,
+                reason=reason,
+                change_type='admin' if changed_by else 'system'
+            )
+
+            # Update timestamps based on status
+            if new_status == 'shipped':
+                self.shipped_at = datetime.utcnow()
+            elif new_status == 'delivered':
+                self.delivered_at = datetime.utcnow()
+            elif new_status == 'cancelled':
+                self.cancelled_at = datetime.utcnow()
+
+    def set_payment_status(self, new_status, changed_by=None, reason=None):
+        """Set payment status with history tracking"""
+        old_status = self.payment_status
+        if old_status != new_status:
+            self.payment_status = new_status
+            self.add_history_entry(
+                field_changed='payment_status',
+                old_value=old_status,
+                new_value=new_status,
+                changed_by=changed_by,
+                reason=reason,
+                change_type='admin' if changed_by else 'system'
+            )
+
+            if new_status == 'paid':
+                self.paid_at = datetime.utcnow()
+
+# ✅ CLASS ENDS HERE - NO MORE METHODS AFTER THIS
 
 
 class OrderItem(db.Model):

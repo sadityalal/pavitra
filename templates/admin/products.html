@@ -1,26 +1,83 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Products - Admin Panel{% endblock %}
+{% block title %}Product Management - Pavitra Enterprises{% endblock %}
+
+{% block page_title %}Product Management{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+<li class="breadcrumb-item active">Products</li>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Products</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="{{ url_for('admin.new_product') }}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Product
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h4 class="mb-0">All Products</h4>
+        <p class="text-muted">Manage your product catalog</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('admin.new_product') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add New Product
         </a>
     </div>
 </div>
 
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="category_id" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Stock Status</label>
+                <select name="stock_filter" class="form-select">
+                    <option value="">All Stock</option>
+                    <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low Stock</option>
+                    <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of Stock</option>
+                    <option value="in_stock" {% if stock_filter == 'in_stock' %}selected{% endif %}>In Stock</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status_filter" class="form-select">
+                    <option value="all">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Products Table -->
 <div class="card shadow">
     <div class="card-body">
         {% if products %}
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
+            <table class="table table-hover">
+                <thead class="thead-light">
                     <tr>
-                        <th>Image</th>
-                        <th>Name</th>
+                        <th>Product</th>
+                        <th>SKU</th>
                         <th>Category</th>
                         <th>Price</th>
                         <th>Stock</th>
@@ -32,61 +89,162 @@
                     {% for product in products %}
                     <tr>
                         <td>
-                            {% if product.image_url %}
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}"
-                                 style="width: 50px; height: 50px; object-fit: cover;" class="rounded">
-                            {% else %}
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                 style="width: 50px; height: 50px;">
-                                <i class="bi bi-image text-muted"></i>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
+                                     alt="{{ product.name }}" class="rounded me-3" width="50" height="50">
+                                <div>
+                                    <h6 class="mb-1">{{ product.name }}</h6>
+                                    <small class="text-muted">{{ product.brand.name if product.brand else 'No Brand' }}</small>
+                                </div>
                             </div>
+                        </td>
+                        <td>
+                            <code>{{ product.sku }}</code>
+                        </td>
+                        <td>
+                            {{ product.category.name if product.category else 'No Category' }}
+                        </td>
+                        <td>
+                            <strong>₹{{ "%.2f"|format(product.base_price) }}</strong>
+                            {% if product.compare_price and product.compare_price > product.base_price %}
+                            <br><small class="text-muted text-decoration-line-through">₹{{ "%.2f"|format(product.compare_price) }}</small>
                             {% endif %}
                         </td>
                         <td>
-                            <strong>{{ product.name }}</strong>
+                            {% if product.track_inventory %}
+                                <span class="badge
+                                    {% if product.stock_quantity == 0 %}bg-danger
+                                    {% elif product.stock_quantity <= product.low_stock_threshold %}bg-warning
+                                    {% else %}bg-success{% endif %}">
+                                    {{ product.stock_quantity }}
+                                </span>
+                                {% if product.stock_quantity <= product.low_stock_threshold %}
+                                <small class="text-warning d-block">Low Stock</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">No Tracking</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if product.status == 'active' %}bg-success
+                                {% elif product.status == 'draft' %}bg-secondary
+                                {% else %}bg-danger{% endif %}">
+                                {{ product.status|title }}
+                            </span>
                             {% if product.is_featured %}
-                            <span class="badge bg-warning ms-1">Featured</span>
+                            <span class="badge bg-primary mt-1">Featured</span>
                             {% endif %}
                         </td>
-                        <td>{{ product.category.name if product.category else 'Uncategorized' }}</td>
-                        <td>${{ "%.2f"|format(product.price) }}</td>
                         <td>
-                            <span class="badge bg-{{ 'danger' if product.inventory_quantity <= product.low_stock_threshold else 'success' }}">
-                                {{ product.inventory_quantity }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge bg-{{ 'success' if product.is_active else 'secondary' }}">
-                                {{ 'Active' if product.is_active else 'Inactive' }}
-                            </span>
-                        </td>
-                        <td class="table-actions">
-                            <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
-                               class="btn btn-sm btn-outline-primary" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{{ url_for('admin.delete_product', product_id=product.id) }}"
-                               class="btn btn-sm btn-outline-danger"
-                               onclick="return confirm('Are you sure you want to delete this product?')"
-                               title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}"
+                                   class="btn btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-warning"
+                                        onclick="updateStock({{ product.id }}, {{ product.stock_quantity }})"
+                                        title="Update Stock">
+                                    <i class="bi bi-clipboard-data"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.id) }}"
+                                      class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Product pagination">
+            <ul class="pagination justify-content-center mt-4">
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.products', page=pagination.prev_num, category_id=category_id, stock_filter=stock_filter, status_filter=status_filter, q=search_query) }}">Previous</a>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.products', page=page_num, category_id=category_id, stock_filter=stock_filter, status_filter=status_filter, q=search_query) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.products', page=pagination.next_num, category_id=category_id, stock_filter=stock_filter, status_filter=status_filter, q=search_query) }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
         {% else %}
         <div class="text-center py-5">
-            <i class="bi bi-box-seam display-1 text-muted"></i>
-            <h4 class="text-muted mt-3">No Products Found</h4>
-            <p class="text-muted">Get started by adding your first product.</p>
+            <i class="bi bi-box display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No products found</h4>
+            <p class="text-muted">Try adjusting your filters or add a new product.</p>
             <a href="{{ url_for('admin.new_product') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Add Product
+                <i class="bi bi-plus-circle me-2"></i>Add Your First Product
             </a>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Stock Update Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Stock Quantity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="stockForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="stockQuantity" class="form-label">New Stock Quantity</label>
+                        <input type="number" class="form-control" id="stockQuantity" name="stock_quantity" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stockReason" class="form-label">Reason (Optional)</label>
+                        <input type="text" class="form-control" id="stockReason" name="reason" placeholder="e.g., New shipment, adjustment">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateStock(productId, currentStock) {
+    document.getElementById('stockQuantity').value = currentStock;
+    document.getElementById('stockForm').action = `/admin/products/${productId}/stock`;
+
+    const stockModal = new bootstrap.Modal(document.getElementById('stockModal'));
+    stockModal.show();
+}
+
+// Initialize products page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Products management initialized');
+});
+</script>
 {% endblock %}
