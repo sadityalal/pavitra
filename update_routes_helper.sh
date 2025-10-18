@@ -1,0 +1,20 @@
+#!/bin/bash
+# update_routes_helper.sh
+
+echo "🔄 Use these search/replace patterns in your Python files:"
+echo ""
+echo "FROM                         TO"
+echo "render_template('cart.html')                 → render_template('shop/cart.html')"
+echo "render_template('account.html')              → render_template('account/account.html')"
+echo "render_template('profile.html')              → render_template('account/profile.html')"
+echo "render_template('orders.html')               → render_template('account/orders.html')"
+echo "render_template('order-confirmation.html')   → render_template('checkout/order_confirmation.html')"
+echo "render_template('payment-methods.html')      → render_template('checkout/payment_methods.html')"
+echo "render_template('shipping-info.html')        → render_template('static_pages/shipping_info.html')"
+echo "render_template('about.html')                → render_template('static_pages/about.html')"
+echo "render_template('contact.html')              → render_template('static_pages/contact.html')"
+echo "render_template('faq.html')                  → render_template('static_pages/faq.html')"
+echo "render_template('return-policy.html')        → render_template('static_pages/return_policy.html')"
+echo "render_template('tos.html')                  → render_template('static_pages/tos.html')"
+echo "render_template('privacy.html')              → render_template('static_pages/privacy.html')"
+echo "render_template('search-results.html')       → render_template('shop/search_results.html')"

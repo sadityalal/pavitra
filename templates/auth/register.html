@@ -45,13 +45,28 @@
             {% endwith %}
 
             <form class="auth-form-content" action="{{ url_for('auth.register') }}" method="post">
-              <div class="mb-3">
-                <label for="name" class="form-label">Full Name *</label>
-                <div class="input-group">
-                  <span class="input-group-text">
-                    <i class="bi bi-person"></i>
-                  </span>
-                  <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" required autocomplete="name" value="{{ request.form.name if request.form }}">
+              <!-- CSRF Token -->
+<!--              {{ csrf_token() }}-->
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="first_name" class="form-label">First Name *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-person"></i>
+                    </span>
+                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First name" required autocomplete="given-name" value="{{ request.form.first_name if request.form }}">
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="last_name" class="form-label">Last Name *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="bi bi-person"></i>
+                    </span>
+                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last name" required autocomplete="family-name" value="{{ request.form.last_name if request.form }}">
+                  </div>
                 </div>
               </div>
 
@@ -62,6 +77,19 @@
                     <i class="bi bi-envelope"></i>
                   </span>
                   <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required autocomplete="email" value="{{ request.form.email if request.form }}">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-phone"></i>
+                  </span>
+                  <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter your phone number" autocomplete="tel" value="{{ request.form.phone if request.form }}">
+                </div>
+                <div class="form-text">
+                  Optional - for order updates and faster checkout
                 </div>
               </div>
 
@@ -92,16 +120,17 @@
                     <i class="bi bi-eye"></i>
                   </button>
                 </div>
+                <div id="password-match-feedback" class="form-text"></div>
               </div>
 
               <div class="form-check mb-4">
                 <input class="form-check-input" type="checkbox" id="termsCheck" name="termsCheck" required>
                 <label class="form-check-label" for="termsCheck">
-                  I agree to the <a href="{{ url_for('shop.tos') }}" class="text-decoration-none">Terms of Service</a> and <a href="{{ url_for('shop.privacy') }}" class="text-decoration-none">Privacy Policy</a>
+                  I agree to the <a href="{{ url_for('shop.tos') }}" target="_blank" class="text-decoration-none">Terms of Service</a> and <a href="{{ url_for('shop.privacy') }}" target="_blank" class="text-decoration-none">Privacy Policy</a>
                 </label>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100 mb-3 py-2">
+              <button type="submit" class="btn btn-dark w-100 mb-3 py-2">
                 Create Account
                 <i class="bi bi-person-plus ms-2"></i>
               </button>
@@ -143,19 +172,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Password confirmation validation
+  // Password confirmation validation with real-time feedback
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirm_password');
+  const passwordMatchFeedback = document.getElementById('password-match-feedback');
 
   function validatePassword() {
-    if (password.value !== confirmPassword.value) {
+    if (confirmPassword.value === '') {
+      passwordMatchFeedback.textContent = '';
+      passwordMatchFeedback.className = 'form-text';
+      confirmPassword.setCustomValidity('');
+    } else if (password.value !== confirmPassword.value) {
+      passwordMatchFeedback.textContent = 'Passwords do not match';
+      passwordMatchFeedback.className = 'form-text text-danger';
       confirmPassword.setCustomValidity("Passwords don't match");
     } else {
+      passwordMatchFeedback.textContent = 'Passwords match';
+      passwordMatchFeedback.className = 'form-text text-success';
       confirmPassword.setCustomValidity('');
     }
   }
 
-  if (password && confirmPassword) {
+  if (password && confirmPassword && passwordMatchFeedback) {
     password.addEventListener('input', validatePassword);
     confirmPassword.addEventListener('input', validatePassword);
   }
@@ -165,6 +203,15 @@ document.addEventListener('DOMContentLoaded', function() {
   if (registerForm) {
     registerForm.addEventListener('submit', function(e) {
       const termsCheck = document.getElementById('termsCheck');
+      const firstName = document.getElementById('first_name');
+      const lastName = document.getElementById('last_name');
+
+      // Check required fields
+      if (!firstName.value.trim() || !lastName.value.trim()) {
+        e.preventDefault();
+        alert('Please enter both first name and last name.');
+        return;
+      }
 
       if (!termsCheck.checked) {
         e.preventDefault();
@@ -178,12 +225,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      if (password.value.length < 6) {
+      if (password.value.length < 8) {
         e.preventDefault();
-        alert('Password must be at least 6 characters long.');
+        alert('Password must be at least 8 characters long.');
         return;
       }
     });
+  }
+
+  // Auto-focus on first name field
+  const firstNameField = document.getElementById('first_name');
+  if (firstNameField && !firstNameField.value) {
+    firstNameField.focus();
   }
 });
 </script>

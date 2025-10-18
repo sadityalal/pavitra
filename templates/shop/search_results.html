@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Shiping Info - NiceShop Bootstrap Template</title>
+  <title>Search Results - NiceShop Bootstrap Template</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
 
@@ -37,7 +37,7 @@
   ======================================================== -->
 </head>
 
-<body class="shiping-info-page">
+<body class="search-results-page">
 
   <header id="header" class="header sticky-top">
     <!-- Top Bar -->
@@ -175,7 +175,7 @@
             </a>
 
             <!-- Cart -->
-            <a href="cart.html" class="header-action-btn">
+            <a href="shop/cart.html" class="header-action-btn">
               <i class="bi bi-cart3"></i>
               <span class="badge">3</span>
             </a>
@@ -194,10 +194,10 @@
         <nav id="navmenu" class="navmenu">
           <ul>
             <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
+            <li><a href="shop/about.html">About</a></li>
             <li><a href="category.html">Category</a></li>
             <li><a href="product_details.html">Product Details</a></li>
-            <li><a href="cart.html">Cart</a></li>
+            <li><a href="shop/cart.html">Cart</a></li>
             <li><a href="checkout.html">Checkout</a></li>
             <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
               <ul>
@@ -773,7 +773,7 @@
 
             </li><!-- End Products Mega Menu 2 -->
 
-            <li><a href="contact.html">Contact</a></li>
+            <li><a href="shop/contact.html">Contact</a></li>
 
           </ul>
         </nav>
@@ -798,170 +798,327 @@
 
   <main class="main">
 
-    <!-- Page Title -->
-    <div class="page-title light-background">
-      <div class="container d-lg-flex justify-content-between align-items-center">
-        <h1 class="mb-2 mb-lg-0">Shiping Info</h1>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="index.html">Home</a></li>
-            <li class="current">Shiping Info</li>
-          </ol>
-        </nav>
+    <!-- Search Results Header Section -->
+    <section id="search-results-header" class="search-results-header section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="search-results-header">
+          <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+              <div class="results-count" data-aos="fade-right" data-aos-delay="200">
+                <h2>Search Results</h2>
+                <p>We found <span class="results-number">24</span> results for <span class="search-term">"Lorem ipsum"</span></p>
+              </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left" data-aos-delay="300">
+              <form method="post" class="search-form">
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="Search..." name="search" value="Lorem ipsum" required="">
+                  <button class="btn search-btn" type="submit">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="search-filters mt-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="row">
+              <div class="col-lg-8">
+                <div class="filter-tags">
+                  <span class="filter-label">Filters:</span>
+                  <div class="tags-wrapper">
+                    <span class="filter-tag">
+                      Category: Blog
+                      <i class="bi bi-x-circle"></i>
+                    </span>
+                    <span class="filter-tag">
+                      Date: Last Month
+                      <i class="bi bi-x-circle"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="sort-options">
+                  <label for="sort-select" class="me-2">Sort by:</label>
+                  <select id="sort-select" class="form-select form-select-sm d-inline-block w-auto">
+                    <option value="relevance">Relevance</option>
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="title-asc">Title A-Z</option>
+                    <option value="title-desc">Title Z-A</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div><!-- End Page Title -->
 
-    <!-- Shipping Info Section -->
-    <section id="shipping-info" class="shipping-info section">
+    </section><!-- /Search Results Header Section -->
 
-      <div class="container" data-aos="fade-up">
+    <!-- Search Product List Section -->
+    <section id="search-product-list" class="search-product-list section">
 
-        <div class="content-wrapper">
-          <!-- Delivery Options -->
-          <div class="content-block" data-aos="fade-up" data-aos-delay="100">
-            <div class="section-heading">
-              <i class="bi bi-truck"></i>
-              <h3>Delivery Options</h3>
-              <p>Choose the delivery option that best suits your needs</p>
-            </div>
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
 
-            <div class="row gy-4 gx-lg-5">
-              <div class="col-md-6 col-lg-4">
-                <div class="delivery-card">
-                  <div class="card-icon">
-                    <i class="bi bi-lightning-charge"></i>
-                  </div>
-                  <h4>Express Delivery</h4>
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Delivery within 1-2 business days.</p>
-                  <div class="delivery-time">
-                    <i class="bi bi-clock"></i>
-                    <span>1-2 Business Days</span>
+        <div class="row g-4">
+          <!-- Product 1 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in">
+              <div class="product-image">
+                <img src="assets/img/product/product-f-1.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-f-2.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
                   </div>
                 </div>
               </div>
-
-              <div class="col-md-6 col-lg-4">
-                <div class="delivery-card">
-                  <div class="card-icon">
-                    <i class="bi bi-box-seam"></i>
-                  </div>
-                  <h4>Standard Shipping</h4>
-                  <p>Proin dapibus nisl ornare diam varius tempus. Delivery within 3-5 business days.</p>
-                  <div class="delivery-time">
-                    <i class="bi bi-clock"></i>
-                    <span>3-5 Business Days</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6 col-lg-4">
-                <div class="delivery-card">
-                  <div class="card-icon">
-                    <i class="bi bi-pin-map"></i>
-                  </div>
-                  <h4>Local Shipping</h4>
-                  <p>Duis aute irure dolor in reprehenderit in voluptate velit. Delivery within 2-3 business days.</p>
-                  <div class="delivery-time">
-                    <i class="bi bi-clock"></i>
-                    <span>2-3 Business Days</span>
+              <div class="product-details">
+                <div class="product-category">Women's Fashion</div>
+                <h4 class="product-title"><a href="product_details.html">Tempor Incididunt</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$129.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.8 <span>(42)</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Shipping Costs -->
-          <div class="content-block" data-aos="fade-up" data-aos-delay="200">
-            <div class="section-heading">
-              <i class="bi bi-cash-coin"></i>
-              <h3>Shipping Costs</h3>
-              <p>Transparent pricing for all shipping options</p>
-            </div>
-
-            <div class="shipping-rates">
-              <div class="rate-item">
-                <div class="rate-type">Standard Shipping</div>
-                <div class="rate-cost">$5.99</div>
-                <div class="rate-info">For orders under $50</div>
+          <!-- Product 2 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="100">
+              <div class="product-image">
+                <img src="assets/img/product/product-m-1.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-m-2.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="product-badge new">New</div>
               </div>
-              <div class="rate-item highlight">
-                <div class="rate-type">Free Shipping</div>
-                <div class="rate-cost">$0.00</div>
-                <div class="rate-info">For orders over $50</div>
-              </div>
-              <div class="rate-item">
-                <div class="rate-type">Express Shipping</div>
-                <div class="rate-cost">$12.99</div>
-                <div class="rate-info">1-2 business days delivery</div>
+              <div class="product-details">
+                <div class="product-category">Men's Collection</div>
+                <h4 class="product-title"><a href="product_details.html">Elit Consectetur</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$95.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.6 <span>(28)</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- International Shipping -->
-          <div class="content-block" data-aos="fade-up" data-aos-delay="300">
-            <div class="section-heading">
-              <i class="bi bi-globe"></i>
-              <h3>International Shipping</h3>
-              <p>We deliver worldwide with reliable carriers</p>
-            </div>
-
-            <div class="international-info">
-              <div class="info-item">
-                <i class="bi bi-clock-history"></i>
-                <h5>Delivery Time</h5>
-                <p>5-10 business days for most international destinations</p>
+          <!-- Product 3 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="200">
+              <div class="product-image">
+                <img src="assets/img/product/product-f-3.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-f-4.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="product-badge sale">-25%</div>
               </div>
-              <div class="info-item">
-                <i class="bi bi-currency-dollar"></i>
-                <h5>Customs &amp; Duties</h5>
-                <p>Import duties and taxes are not included in the shipping cost</p>
-              </div>
-              <div class="info-item">
-                <i class="bi bi-shield-check"></i>
-                <h5>Reliable Service</h5>
-                <p>Tracked shipping with leading international carriers</p>
+              <div class="product-details">
+                <div class="product-category">Accessories</div>
+                <h4 class="product-title"><a href="product_details.html">Adipiscing Magna</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">
+                    $75.00
+                    <span class="original-price">$99.00</span>
+                  </div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.9 <span>(56)</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- FAQ Section -->
-          <div class="content-block" data-aos="fade-up" data-aos-delay="400">
-            <div class="section-heading">
-              <i class="bi bi-question-circle"></i>
-              <h3>Shipping FAQ</h3>
-              <p>Common questions about our shipping services</p>
+          <!-- Product 4 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="300">
+              <div class="product-image">
+                <img src="assets/img/product/product-m-3.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-m-4.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-details">
+                <div class="product-category">Footwear</div>
+                <h4 class="product-title"><a href="product_details.html">Labore Dolore</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$145.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.7 <span>(35)</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div class="faq-list">
-              <div class="faq-item">
-                <h3>
-                  <i class="bi bi-question-circle"></i>
-                  How can I track my order?
-                  <i class="bi bi-chevron-down faq-toggle"></i>
-                </h3>
-                <div class="faq-answer">
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. You can track your order using the tracking number provided in your shipping confirmation email.</p>
+          <!-- Product 5 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="400">
+              <div class="product-image">
+                <img src="assets/img/product/product-f-5.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-f-6.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div class="faq-item">
-                <h3>
-                  <i class="bi bi-question-circle"></i>
-                  What if I'm not home for delivery?
-                  <i class="bi bi-chevron-down faq-toggle"></i>
-                </h3>
-                <div class="faq-answer">
-                  <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. The carrier will leave a notification and attempt delivery again or leave your package at a secure location.</p>
+              <div class="product-details">
+                <div class="product-category">Men's Fashion</div>
+                <h4 class="product-title"><a href="product_details.html">Magna Aliqua</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$89.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.5 <span>(23)</span>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div class="faq-item">
-                <h3>
-                  <i class="bi bi-question-circle"></i>
-                  Do you offer weekend delivery?
-                  <i class="bi bi-chevron-down faq-toggle"></i>
-                </h3>
-                <div class="faq-answer">
-                  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Weekend delivery is available for express shipping in select areas.</p>
+          <!-- Product 6 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="500">
+              <div class="product-image">
+                <img src="assets/img/product/product-m-5.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-m-6.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="product-badge sale">-15%</div>
+              </div>
+              <div class="product-details">
+                <div class="product-category">Women's Fashion</div>
+                <h4 class="product-title"><a href="product_details.html">Eiusmod Tempor</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">
+                    $110.00
+                    <span class="original-price">$129.00</span>
+                  </div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.8 <span>(47)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 7 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="600">
+              <div class="product-image">
+                <img src="assets/img/product/product-f-7.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-f-8.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="product-details">
+                <div class="product-category">Accessories</div>
+                <h4 class="product-title"><a href="product_details.html">Incididunt Labore</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$55.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.6 <span>(31)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 8 -->
+          <div class="col-6 col-lg-3">
+            <div class="product-card" data-aos="zoom-in" data-aos-delay="700">
+              <div class="product-image">
+                <img src="assets/img/product/product-m-7.webp" class="main-image img-fluid" alt="Product">
+                <img src="assets/img/product/product-m-8.webp" class="hover-image img-fluid" alt="Product Variant">
+                <div class="product-overlay">
+                  <div class="product-actions">
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Quick View">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="action-btn" data-bs-toggle="tooltip" title="Add to Cart">
+                      <i class="bi bi-cart-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="product-badge new">New</div>
+              </div>
+              <div class="product-details">
+                <div class="product-category">Men's Fashion</div>
+                <h4 class="product-title"><a href="product_details.html">Aliqua Magna</a></h4>
+                <div class="product-meta">
+                  <div class="product-price">$79.00</div>
+                  <div class="product-rating">
+                    <i class="bi bi-star-fill"></i>
+                    4.7 <span>(39)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -971,7 +1128,40 @@
 
       </div>
 
-    </section><!-- /Shipping Info Section -->
+    </section><!-- /Search Product List Section -->
+
+    <!-- Category Pagination Section -->
+    <section id="category-pagination" class="category-pagination section">
+
+      <div class="container">
+        <nav class="d-flex justify-content-center" aria-label="Page navigation">
+          <ul>
+            <li>
+              <a href="#" aria-label="Previous page">
+                <i class="bi bi-arrow-left"></i>
+                <span class="d-none d-sm-inline">Previous</span>
+              </a>
+            </li>
+
+            <li><a href="#" class="active">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li class="ellipsis">...</li>
+            <li><a href="#">8</a></li>
+            <li><a href="#">9</a></li>
+            <li><a href="#">10</a></li>
+
+            <li>
+              <a href="#" aria-label="Next page">
+                <span class="d-none d-sm-inline">Next</span>
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </section><!-- /Category Pagination Section -->
 
   </main>
 
@@ -1023,7 +1213,7 @@
                 <li><a href="shiping-info.html">Shipping Info</a></li>
                 <li><a href="return-policy.html">Returns &amp; Exchanges</a></li>
                 <li><a href="#">Size Guide</a></li>
-                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="shop/contact.html">Contact Us</a></li>
               </ul>
             </div>
           </div>

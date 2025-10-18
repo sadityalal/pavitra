@@ -1,11 +1,37 @@
-Flask>=2.2.5
-Flask-SQLAlchemy>=3.0.0
-pymysql>=1.0.0
-Werkzeug>=2.2.2
-python-dotenv>=1.0.0
-bcrypt>=4.0.0
-Flask
-Flask-SQLAlchemy
-Flask-Migrate
-PyMySQL
-cryptography
+# Flask Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Database & ORM
+Flask-SQLAlchemy==3.0.5
+Flask-Migrate==4.0.5
+PyMySQL==1.1.0
+SQLAlchemy==2.0.23
+
+# Authentication & Security
+Flask-Login==0.6.3
+bcrypt==4.0.1
+cryptography==44.0.1
+
+# Environment Management
+python-dotenv==1.0.0
+
+# Forms & Validation
+WTForms==3.0.1
+Flask-WTF==1.1.1
+
+# File Uploads (Will work on 3.12!)
+Pillow==10.3.0
+
+# Email Support
+Flask-Mail==0.9.1
+
+# Development & Testing
+pytest==7.4.2
+Faker==19.6.2
+
+# Production
+gunicorn==23.0.0
+gevent==23.9.1
+
+flask-wtf

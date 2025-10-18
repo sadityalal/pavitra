@@ -11,7 +11,7 @@ __pycache__/
 .venv/*
 .venv
 .idea/
-.env.mysql
+old/.env.mysql
 .mysql-data/
 build/
 develop-eggs/

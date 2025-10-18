@@ -45,6 +45,8 @@
             {% endwith %}
 
             <form class="auth-form-content" action="{{ url_for('auth.login') }}" method="post">
+              <!-- CSRF Token - ADD THIS LINE -->
+
               <div class="mb-3">
                 <label for="email" class="form-label">Email Address</label>
                 <div class="input-group">
@@ -78,7 +80,7 @@
                 <a href="#" class="text-decoration-none">Forgot password?</a>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100 mb-3 py-2">
+              <button type="submit" class="btn btn-dark w-100 mb-3 py-2">
                 Sign In
                 <i class="bi bi-arrow-right ms-2"></i>
               </button>
@@ -98,27 +100,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-// Password toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const passwordToggle = document.querySelector('.password-toggle');
-  const passwordInput = document.getElementById('password');
-
-  if (passwordToggle && passwordInput) {
-    passwordToggle.addEventListener('click', function() {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-
-      const icon = this.querySelector('i');
-      if (type === 'text') {
-        icon.classList.remove('bi-eye');
-        icon.classList.add('bi-eye-slash');
-      } else {
-        icon.classList.remove('bi-eye-slash');
-        icon.classList.add('bi-eye');
-      }
-    });
-  }
-});
-</script>
+<!-- Load login-specific JavaScript -->
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 {% endblock %}
