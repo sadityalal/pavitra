@@ -36,12 +36,14 @@
     <div class="hero-visuals">
       <div class="product-showcase" data-aos="fade-left" data-aos-delay="200">
         {% if featured_products and featured_products[0] %}
-        <div class="product-card featured">
+        <div class="product-card featured" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=featured_products[0].slug) }}'">
           <img src="{{ featured_products[0].main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                alt="{{ featured_products[0].name }}" class="img-fluid">
           <div class="product-badge">Best Seller</div>
           <div class="product-info">
-            <h4>{{ featured_products[0].name }}</h4>
+            <h4>
+              <a href="{{ url_for('shop.product_detail', slug=featured_products[0].slug) }}" onclick="event.stopPropagation()">{{ featured_products[0].name }}</a>
+            </h4>
             <div class="price">
               <span class="sale-price">{{ currency_symbol }}{{ "%.2f"|format(featured_products[0].base_price) }}</span>
               {% if featured_products[0].compare_price %}
@@ -54,7 +56,7 @@
 
         <div class="product-grid">
           {% if featured_products and featured_products[1] %}
-          <div class="product-mini" data-aos="zoom-in" data-aos-delay="400">
+          <div class="product-mini" data-aos="zoom-in" data-aos-delay="400" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=featured_products[1].slug) }}'">
             <img src="{{ featured_products[1].main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                  alt="{{ featured_products[1].name }}" class="img-fluid">
             <span class="mini-price">{{ currency_symbol }}{{ "%.2f"|format(featured_products[1].base_price) }}</span>
@@ -62,7 +64,7 @@
           {% endif %}
 
           {% if featured_products and featured_products[2] %}
-          <div class="product-mini" data-aos="zoom-in" data-aos-delay="500">
+          <div class="product-mini" data-aos="zoom-in" data-aos-delay="500" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=featured_products[2].slug) }}'">
             <img src="{{ featured_products[2].main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                  alt="{{ featured_products[2].name }}" class="img-fluid">
             <span class="mini-price">{{ currency_symbol }}{{ "%.2f"|format(featured_products[2].base_price) }}</span>
@@ -72,17 +74,22 @@
       </div>
 
       <div class="floating-elements">
-        <div class="floating-icon cart" data-aos="fade-up" data-aos-delay="600">
-          <i class="bi bi-cart3"></i>
-          <span class="notification-dot">{{ cart_count|default(0) }}</span>
+          <!-- Floating Cart Icon -->
+          <div class="floating-icon cart" data-aos="fade-up" data-aos-delay="600" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.cart') }}'">
+            <i class="bi bi-cart3"></i>
+            <span class="notification-dot">{{ cart_count|default(0) }}</span>
+          </div>
+
+          <!-- Floating Wishlist Icon -->
+          <div class="floating-icon wishlist" data-aos="fade-up" data-aos-delay="700" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.wishlist') }}'">
+            <i class="bi bi-heart"></i>
+          </div>
+
+          <!-- Floating Search Icon -->
+          <div class="floating-icon search" data-aos="fade-up" data-aos-delay="800" style="cursor: pointer;" onclick="toggleSearch()">
+            <i class="bi bi-search"></i>
+          </div>
         </div>
-        <div class="floating-icon wishlist" data-aos="fade-up" data-aos-delay="700">
-          <i class="bi bi-heart"></i>
-        </div>
-        <div class="floating-icon search" data-aos="fade-up" data-aos-delay="800">
-          <i class="bi bi-search"></i>
-        </div>
-      </div>
     </div>
   </div>
 </section><!-- /Hero Section -->
@@ -95,7 +102,7 @@
       <div class="col-lg-6">
         <div class="category-featured" data-aos="fade-right" data-aos-delay="200">
           {% if categories and categories[0] %}
-          <div class="category-image">
+          <div class="category-image" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.category', slug=categories[0].slug) }}'">
             <img src="{{ categories[0].image_url or url_for('static', filename='img/categories/placeholder.jpg') }}"
                  alt="{{ categories[0].name }}" class="img-fluid">
           </div>
@@ -115,7 +122,7 @@
         <div class="row gy-4">
           {% for category in categories[1:5] %}
           <div class="col-xl-6">
-            <div class="category-card cat-{{ category.slug }}" data-aos="fade-up" data-aos-delay="{{ 300 + loop.index0 * 100 }}">
+            <div class="category-card cat-{{ category.slug }}" data-aos="fade-up" data-aos-delay="{{ 300 + loop.index0 * 100 }}" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.category', slug=category.slug) }}'">
               <div class="category-image">
                 <img src="{{ category.image_url or url_for('static', filename='img/categories/placeholder.jpg') }}"
                      alt="{{ category.name }}" class="img-fluid">
@@ -123,7 +130,7 @@
               <div class="category-content">
                 <h4>{{ category.name }}</h4>
                 <p>{{ category.products|length if category.products else 0 }} products</p>
-                <a href="{{ url_for('shop.category', slug=category.slug) }}" class="card-link">
+                <a href="{{ url_for('shop.category', slug=category.slug) }}" class="card-link" onclick="event.stopPropagation()">
                   Shop Now <i class="bi bi-arrow-right"></i>
                 </a>
               </div>
@@ -149,7 +156,7 @@
     <div class="row g-5">
       {% for product in best_sellers[:4] %}
       <div class="col-lg-3 col-md-6">
-        <div class="product-item">
+        <div class="product-item" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=product.slug) }}'">
           <div class="product-image">
             {% if product.compare_price and product.compare_price > product.base_price %}
             <div class="product-badge sale-badge">{{ ((1 - product.base_price / product.compare_price) * 100)|round|int }}% Off</div>
@@ -160,19 +167,19 @@
             <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                  alt="{{ product.name }}" class="img-fluid" loading="lazy">
 
-            <div class="product-actions">
+            <div class="product-actions" onclick="event.stopPropagation()">
               {% if current_user.is_authenticated %}
               <button class="action-btn wishlist-btn" onclick="addToWishlist({{ product.id }}, this)">
                 <i class="bi bi-heart"></i>
               </button>
               {% endif %}
-              <button class="action-btn quickview-btn" onclick="quickView({{ product.id }})">
-                <i class="bi bi-zoom-in"></i>
-              </button>
+              <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" class="action-btn quickview-btn">
+                <i class="bi bi-eye"></i>
+              </a>
             </div>
 
             {% if product.stock_quantity and product.stock_quantity > 0 %}
-            <button class="cart-btn" onclick="addToCart({{ product.id }}, this)">Add to Cart</button>
+            <button class="cart-btn" onclick="event.stopPropagation(); addToCart({{ product.id }}, this)">Add to Cart</button>
             {% else %}
             <button class="cart-btn" disabled>Out of Stock</button>
             {% endif %}
@@ -180,7 +187,9 @@
 
           <div class="product-info">
             <div class="product-category">{{ product.category.name if product.category else 'Uncategorized' }}</div>
-            <h4 class="product-name"><a href="{{ url_for('shop.product_detail', slug=product.slug) }}">{{ product.name }}</a></h4>
+            <h4 class="product-name">
+              <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" onclick="event.stopPropagation()">{{ product.name }}</a>
+            </h4>
 
             <div class="product-rating">
               <div class="stars">
@@ -233,7 +242,7 @@
           </h3>
           <div class="product-list">
             {% for product in featured_products[:3] %}
-            <div class="product-card">
+            <div class="product-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=product.slug) }}'">
               <div class="product-image">
                 <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                      alt="{{ product.name }}" class="img-fluid">
@@ -244,7 +253,9 @@
                 {% endif %}
               </div>
               <div class="product-info">
-                <h4 class="product-name">{{ product.name }}</h4>
+                <h4 class="product-name">
+                  <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" onclick="event.stopPropagation()">{{ product.name }}</a>
+                </h4>
                 <div class="product-rating">
                   <div class="stars">
                     {% set avg_rating = product.get_average_rating() or 0 %}
@@ -276,7 +287,7 @@
           </h3>
           <div class="product-list">
             {% for product in new_arrivals[:3] %}
-            <div class="product-card">
+            <div class="product-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=product.slug) }}'">
               <div class="product-image">
                 <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                      alt="{{ product.name }}" class="img-fluid">
@@ -285,7 +296,9 @@
                 </div>
               </div>
               <div class="product-info">
-                <h4 class="product-name">{{ product.name }}</h4>
+                <h4 class="product-name">
+                  <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" onclick="event.stopPropagation()">{{ product.name }}</a>
+                </h4>
                 <div class="product-rating">
                   <div class="stars">
                     {% set avg_rating = product.get_average_rating() or 0 %}
@@ -317,7 +330,7 @@
           </h3>
           <div class="product-list">
             {% for product in best_sellers[4:7] %}
-            <div class="product-card">
+            <div class="product-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=product.slug) }}'">
               <div class="product-image">
                 <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                      alt="{{ product.name }}" class="img-fluid">
@@ -328,7 +341,9 @@
                 {% endif %}
               </div>
               <div class="product-info">
-                <h4 class="product-name">{{ product.name }}</h4>
+                <h4 class="product-name">
+                  <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" onclick="event.stopPropagation()">{{ product.name }}</a>
+                </h4>
                 <div class="product-rating">
                   <div class="stars">
                     {% set avg_rating = product.get_average_rating() or 0 %}
@@ -383,11 +398,10 @@
         </div>
       </div>
     </div>
-
     <div class="row featured-products-row" data-aos="fade-up" data-aos-delay="500">
       {% for product in featured_products[3:7] %}
       <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="{{ 100 + loop.index0 * 50 }}">
-        <div class="product-showcase">
+        <div class="product-showcase" style="cursor: pointer;" onclick="window.location.href='{{ url_for('shop.product_detail', slug=product.slug) }}'">
           <div class="product-image">
             <img src="{{ product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
                  alt="{{ product.name }}" class="img-fluid">
@@ -396,7 +410,9 @@
             {% endif %}
           </div>
           <div class="product-details">
-            <h6>{{ product.name }}</h6>
+            <h6>
+              <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" onclick="event.stopPropagation()">{{ product.name }}</a>
+            </h6>
             <div class="price-section">
               {% if product.compare_price and product.compare_price > product.base_price %}
               <span class="original-price">{{ currency_symbol }}{{ "%.2f"|format(product.compare_price) }}</span>
@@ -421,7 +437,6 @@
       </div>
       {% endfor %}
     </div>
-  </div>
 </section><!-- /Call To Action Section -->
 
 <!-- Features Section -->
@@ -463,12 +478,5 @@
 
 {% block scripts %}
 <!-- Only page-specific scripts, initialization is handled by init.js -->
-<script>
-// Only AOS re-initialization if needed for this specific page
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof AOS !== 'undefined') {
-        AOS.refresh(); // Refresh AOS for dynamic content if needed
-    }
-});
-</script>
+<script src="{{ url_for('static', filename='js/mainindex.js') }}"></script>
 {% endblock %}

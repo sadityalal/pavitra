@@ -6,7 +6,7 @@
 <!-- Page Title -->
 <div class="page-title light-background">
   <div class="container d-lg-flex justify-content-between align-items-center">
-    <h1 class="mb-2 mb-lg-0">Cart</h1>
+    <h1 class="mb-2 mb-lg-0">Shopping Cart</h1>
     <nav class="breadcrumbs">
       <ol>
         <li><a href="{{ url_for('shop.index') }}">Home</a></li>
@@ -24,7 +24,7 @@
         <div class="cart-items">
           <div class="cart-header d-none d-lg-block">
             <div class="row align-items-center">
-              <div class="col-lg-6">
+              <div class="col-lg-5">
                 <h5>Product</h5>
               </div>
               <div class="col-lg-2 text-center">
@@ -36,86 +36,117 @@
               <div class="col-lg-2 text-center">
                 <h5>Total</h5>
               </div>
+              <div class="col-lg-1 text-center">
+                <h5>Action</h5>
+              </div>
             </div>
           </div>
 
-          {% if cart %}
-            {% for item in cart %}
+          {% if cart_items %}
+            {% for item in cart_items %}
             <!-- Cart Item -->
-            <div class="cart-item">
+            <div class="cart-item border rounded p-3 mb-3">
               <div class="row align-items-center">
-                <div class="col-lg-6 col-12 mt-3 mt-lg-0 mb-lg-0 mb-3">
+                <div class="col-lg-5 col-12">
                   <div class="product-info d-flex align-items-center">
-                    <div class="product-image">
-                      <img src="{{ url_for('static', filename='img/product/product-' ~ (loop.index % 12 + 1) ~ '.webp') }}" alt="{{ item.name }}" class="img-fluid" loading="lazy">
+                    <div class="product-image me-3">
+                      <img src="{{ item.product.main_image_url or url_for('static', filename='img/product/placeholder.jpg') }}"
+                           alt="{{ item.product.name }}"
+                           class="img-fluid rounded"
+                           style="width: 80px; height: 80px; object-fit: cover;"
+                           loading="lazy">
                     </div>
                     <div class="product-details">
-                      <h6 class="product-title">{{ item.name }}</h6>
+                      <h6 class="product-title mb-1">{{ item.product.name }}</h6>
+                      <p class="product-sku text-muted small mb-1">SKU: {{ item.product.sku }}</p>
+                      {% if item.variation %}
                       <div class="product-meta">
-                        <span class="product-color">Color: Black</span>
-                        <span class="product-size">Size: M</span>
+                        {% for attr in item.variation_attributes %}
+                        <span class="badge bg-light text-dark me-1">{{ attr.attribute_name }}: {{ attr.value }}</span>
+                        {% endfor %}
                       </div>
-                      <a href="{{ url_for('shop.remove_from_cart', pid=item.id) }}" class="remove-item">
-                        <i class="bi bi-trash"></i> Remove
-                      </a>
+                      {% endif %}
                     </div>
                   </div>
                 </div>
-                <div class="col-lg-2 col-12 mt-3 mt-lg-0 text-center">
+                <div class="col-lg-2 col-12 mt-2 mt-lg-0 text-center">
                   <div class="price-tag">
-                    <span class="current-price">${{ "%.2f"|format(item.price) }}</span>
+                    <span class="current-price fw-bold">₹{{ "%.2f"|format(item.product.base_price) }}</span>
+                    {% if item.product.compare_price %}
+                    <br>
+                    <small class="text-muted text-decoration-line-through">₹{{ "%.2f"|format(item.product.compare_price) }}</small>
+                    {% endif %}
                   </div>
                 </div>
-                <div class="col-lg-2 col-12 mt-3 mt-lg-0 text-center">
-                  <form method="POST" action="{{ url_for('shop.update_cart', pid=item.id) }}" class="quantity-form">
-                    <div class="quantity-selector">
-                      <button type="button" class="quantity-btn decrease" onclick="updateQuantity({{ item.id }}, -1)">
+                <div class="col-lg-2 col-12 mt-2 mt-lg-0 text-center">
+                  <div class="quantity-selector d-inline-flex align-items-center">
+                    <form method="POST" action="{{ url_for('shop.update_cart_item') }}" class="d-flex quantity-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="item_id" value="{{ item.id }}">
+                      <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" data-action="decrease">
                         <i class="bi bi-dash"></i>
                       </button>
-                      <input type="number" class="quantity-input" name="quantity" value="{{ item.qty }}" min="1" max="10" data-item-id="{{ item.id }}">
-                      <button type="button" class="quantity-btn increase" onclick="updateQuantity({{ item.id }}, 1)">
+                      <span class="quantity-display mx-2 fw-bold">{{ item.quantity }}</span>
+                      <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" data-action="increase">
                         <i class="bi bi-plus"></i>
                       </button>
-                    </div>
-                  </form>
-                </div>
-                <div class="col-lg-2 col-12 mt-3 mt-lg-0 text-center">
-                  <div class="item-total">
-                    <span>${{ "%.2f"|format(item.price * item.qty) }}</span>
+                    </form>
                   </div>
+                  <small class="text-muted d-block mt-1">Max: {{ item.product.max_cart_quantity or 10 }}</small>
+                </div>
+                <div class="col-lg-2 col-12 mt-2 mt-lg-0 text-center">
+                  <div class="item-total">
+                    <span class="fw-bold text-success">₹{{ "%.2f"|format(item.product.base_price * item.quantity) }}</span>
+                    <br>
+                    <small class="text-muted">GST: {{ item.product.gst_rate }}%</small>
+                  </div>
+                </div>
+                <div class="col-lg-1 col-12 mt-2 mt-lg-0 text-center">
+                  <form method="POST" action="{{ url_for('shop.remove_from_cart_item', item_id=item.id) }}" class="remove-item-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-item-btn">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
                 </div>
               </div>
             </div><!-- End Cart Item -->
             {% endfor %}
           {% else %}
-          <div class="empty-cart" data-aos="fade-up">
-            <div class="empty-icon">
-              <i class="bi bi-cart-x"></i>
+          <div class="empty-cart text-center py-5" data-aos="fade-up">
+            <div class="empty-icon mb-4">
+              <i class="bi bi-cart-x display-1 text-muted"></i>
             </div>
-            <h3>Your Cart is Empty</h3>
-            <p>Looks like you haven't added any items to your cart yet.</p>
-            <a href="{{ url_for('shop.category') }}" class="btn btn-primary">Start Shopping</a>
+            <h3 class="mb-3">Your Cart is Empty</h3>
+            <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
+            <a href="{{ url_for('shop.products') }}" class="btn btn-primary btn-lg">
+              <i class="bi bi-bag me-2"></i>Start Shopping
+            </a>
           </div>
           {% endif %}
 
-          {% if cart %}
-          <div class="cart-actions">
+          {% if cart_items %}
+          <div class="cart-actions mt-4">
             <div class="row">
               <div class="col-lg-6 mb-3 mb-lg-0">
                 <div class="coupon-form">
-                  <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Coupon code">
-                    <button class="btn btn-outline-accent" type="button">Apply Coupon</button>
-                  </div>
+                  <form method="POST" action="{{ url_for('shop.apply_coupon') }}" class="input-group" id="couponForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" class="form-control" name="coupon_code" placeholder="Enter coupon code" required>
+                    <button class="btn btn-outline-primary" type="submit">Apply Coupon</button>
+                  </form>
                 </div>
               </div>
-              <div class="col-lg-6 text-md-end">
-                <a href="{{ url_for('shop.category') }}" class="btn btn-outline-heading me-2">
-                  <i class="bi bi-arrow-clockwise"></i> Continue Shopping
+              <div class="col-lg-6 text-lg-end">
+                <a href="{{ url_for('shop.products') }}" class="btn btn-outline-secondary me-2">
+                  <i class="bi bi-arrow-left me-2"></i>Continue Shopping
                 </a>
-                <a href="{{ url_for('shop.cart') }}" class="btn btn-outline-remove" onclick="clearCart()">
-                  <i class="bi bi-trash"></i> Clear Cart
-                </a>
+                <form method="POST" action="{{ url_for('shop.clear_cart') }}" class="d-inline" id="clearCartForm">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="button" class="btn btn-outline-danger" id="clearCartBtn">
+                    <i class="bi bi-trash me-2"></i>Clear Cart
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -123,77 +154,78 @@
         </div>
       </div>
 
-      {% if cart %}
+      {% if cart_items %}
       <div class="col-lg-4 mt-4 mt-lg-0" data-aos="fade-up" data-aos-delay="300">
-        <div class="cart-summary">
-          <h4 class="summary-title">Order Summary</h4>
+        <div class="cart-summary border rounded p-4">
+          <h4 class="summary-title mb-4">Order Summary</h4>
 
-          <div class="summary-item">
-            <span class="summary-label">Subtotal</span>
-            <span class="summary-value">${{ "%.2f"|format(total) }}</span>
+          <div class="summary-item d-flex justify-content-between mb-2">
+            <span class="summary-label">Subtotal ({{ total_items }} items)</span>
+            <span class="summary-value">₹{{ "%.2f"|format(subtotal) }}</span>
           </div>
 
-          <div class="summary-item shipping-item">
+          <div class="summary-item d-flex justify-content-between mb-2">
             <span class="summary-label">Shipping</span>
-            <div class="shipping-options">
-              <div class="form-check text-end">
-                <input class="form-check-input" type="radio" name="shipping" id="standard" checked="">
-                <label class="form-check-label" for="standard">
-                  Standard Delivery - $4.99
-                </label>
-              </div>
-              <div class="form-check text-end">
-                <input class="form-check-input" type="radio" name="shipping" id="express">
-                <label class="form-check-label" for="express">
-                  Express Delivery - $12.99
-                </label>
-              </div>
-              <div class="form-check text-end">
-                <input class="form-check-input" type="radio" name="shipping" id="free" {% if total >= 50 %}checked{% endif %}>
-                <label class="form-check-label" for="free">
-                  Free Shipping (Orders over $50)
-                </label>
-              </div>
-            </div>
+            <span class="summary-value">
+              {% if subtotal >= 999 %}
+              <span class="text-success">FREE</span>
+              {% else %}
+              ₹50.00
+              {% endif %}
+            </span>
           </div>
 
-          <div class="summary-item">
-            <span class="summary-label">Tax</span>
-            <span class="summary-value">${{ "%.2f"|format(total * 0.08) }}</span>
+          <div class="summary-item d-flex justify-content-between mb-2">
+            <span class="summary-label">GST</span>
+            <span class="summary-value">₹{{ "%.2f"|format(tax_amount) }}</span>
           </div>
 
-          <div class="summary-item discount">
+          {% if discount_amount > 0 %}
+          <div class="summary-item d-flex justify-content-between mb-2 text-success">
             <span class="summary-label">Discount</span>
-            <span class="summary-value">-$0.00</span>
+            <span class="summary-value">-₹{{ "%.2f"|format(discount_amount) }}</span>
+          </div>
+          {% endif %}
+
+          {% set shipping_cost = 0 if subtotal >= 999 else 50 %}
+          {% set final_total = subtotal + tax_amount + shipping_cost - discount_amount %}
+
+          <hr>
+          <div class="summary-total d-flex justify-content-between mb-4">
+            <span class="summary-label fw-bold fs-5">Total Amount</span>
+            <span class="summary-value fw-bold fs-5 text-success">₹{{ "%.2f"|format(final_total) }}</span>
           </div>
 
-          {% set shipping_cost = 0 if total >= 50 else 4.99 %}
-          {% set final_total = total + (total * 0.08) + shipping_cost %}
-          
-          <div class="summary-total">
-            <span class="summary-label">Total</span>
-            <span class="summary-value">${{ "%.2f"|format(final_total) }}</span>
+          {% if subtotal < 999 %}
+          <div class="free-shipping-alert alert alert-info mb-4">
+            <small>
+              <i class="bi bi-info-circle me-1"></i>
+              Add ₹{{ "%.2f"|format(999 - subtotal) }} more for <strong>FREE shipping</strong>!
+            </small>
           </div>
+          {% endif %}
 
-          <div class="checkout-button">
-            <a href="{{ url_for('shop.checkout') }}" class="btn btn-accent w-100">
-              Proceed to Checkout <i class="bi bi-arrow-right"></i>
+          <div class="checkout-button mb-3">
+            <a href="{{ url_for('shop.checkout') }}" class="btn btn-primary w-100 py-2">
+              <i class="bi bi-lock me-2"></i>Proceed to Checkout
             </a>
           </div>
 
-          <div class="continue-shopping">
-            <a href="{{ url_for('shop.category') }}" class="btn btn-link w-100">
-              <i class="bi bi-arrow-left"></i> Continue Shopping
-            </a>
+          <div class="security-info text-center">
+            <small class="text-muted">
+              <i class="bi bi-shield-check me-1"></i>
+              Secure checkout · SSL encrypted
+            </small>
           </div>
 
-          <div class="payment-methods">
-            <p class="payment-title">We Accept</p>
-            <div class="payment-icons">
-              <i class="bi bi-credit-card"></i>
-              <i class="bi bi-paypal"></i>
-              <i class="bi bi-wallet2"></i>
-              <i class="bi bi-bank"></i>
+          <div class="payment-methods mt-4 pt-3 border-top">
+            <p class="payment-title small text-muted mb-2">We Accept</p>
+            <div class="payment-icons d-flex justify-content-center gap-3">
+              <i class="bi bi-credit-card fs-4 text-muted" title="Credit Cards"></i>
+              <i class="bi bi-phone fs-4 text-muted" title="UPI"></i>
+              <i class="bi bi-wallet2 fs-4 text-muted" title="Digital Wallets"></i>
+              <i class="bi bi-bank fs-4 text-muted" title="Net Banking"></i>
+              <i class="bi bi-cash fs-4 text-muted" title="Cash on Delivery"></i>
             </div>
           </div>
         </div>
@@ -205,50 +237,5 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Additional scripts for cart page -->
-<script>
-function updateQuantity(itemId, change) {
-  const quantityInput = document.querySelector(`input[data-item-id="${itemId}"]`);
-  let newQuantity = parseInt(quantityInput.value) + change;
-  
-  if (newQuantity < 1) newQuantity = 1;
-  if (newQuantity > 10) newQuantity = 10;
-  
-  quantityInput.value = newQuantity;
-  
-  // Submit the form to update the cart
-  const form = quantityInput.closest('form');
-  form.submit();
-}
-
-function clearCart() {
-  if (confirm('Are you sure you want to clear your cart?')) {
-    // This would typically be handled by a server-side route
-    // For now, we'll redirect to a clear cart endpoint
-    window.location.href = "{{ url_for('shop.cart') }}?clear=1";
-  }
-}
-
-// Auto-update cart when quantity changes
-document.addEventListener('DOMContentLoaded', function() {
-  const quantityInputs = document.querySelectorAll('.quantity-input');
-  quantityInputs.forEach(input => {
-    input.addEventListener('change', function() {
-      const form = this.closest('form');
-      if (form) {
-        form.submit();
-      }
-    });
-  });
-
-  // Handle shipping option changes
-  const shippingRadios = document.querySelectorAll('input[name="shipping"]');
-  shippingRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      // This would typically recalculate totals via AJAX
-      console.log('Shipping option changed:', this.id);
-    });
-  });
-});
-</script>
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 {% endblock %}
